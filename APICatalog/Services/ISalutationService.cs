@@ -1,7 +1,6 @@
-﻿namespace APICatalog.Services
+﻿namespace APICatalog.Services;
+
+public interface ISalutationService
 {
-    public interface ISalutationService
-    {
-        string Salutation(string name);
-    }
+    string Salutation(string name);
 }

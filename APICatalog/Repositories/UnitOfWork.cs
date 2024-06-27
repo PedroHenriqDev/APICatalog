@@ -1,53 +1,52 @@
 ﻿using APICatalog.Context;
 using APICatalog.Interfaces;
 
-namespace APICatalog.Repositories
+namespace APICatalog.Repositories;
+
+public class UnitOfWork : IUnitOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    public AppDbContext _context;
+    private IProductRepository? _productRepository;
+    private ICategoryRepository? _categoryRepository;
+
+    public UnitOfWork(AppDbContext context) 
     {
-        public AppDbContext _context;
-        private IProductRepository? _productRepository;
-        private ICategoryRepository? _categoryRepository;
+        _context = context;
+    }
 
-        public UnitOfWork(AppDbContext context) 
+    public IProductRepository ProductRepository 
+    {
+        get 
         {
-            _context = context;
+            return _productRepository = _productRepository ?? new ProductRepository(_context);
         }
+    }
 
-        public IProductRepository ProductRepository 
+    public ICategoryRepository CategoryRepository
+    {
+        get
         {
-            get 
-            {
-                return _productRepository = _productRepository ?? new ProductRepository(_context);
-            }
+            return _categoryRepository = _categoryRepository ?? new CategoryRepository(_context);
         }
+    }
 
-        public ICategoryRepository CategoryRepository
-        {
-            get
-            {
-                return _categoryRepository = _categoryRepository ?? new CategoryRepository(_context);
-            }
-        }
+    public void Dispose() 
+    {
+        _context.Dispose();
+    }
 
-        public void Dispose() 
-        {
-            _context.Dispose();
-        }
+    public async Task DisposeAsync()
+    {
+        await _context.DisposeAsync();
+    }
 
-        public async Task DisposeAsync()
-        {
-            await _context.DisposeAsync();
-        }
+    public void Commit()
+    {
+        _context.SaveChanges();
+    }
 
-        public void Commit()
-        {
-            _context.SaveChanges();
-        }
-
-        public async Task CommitAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
+    public async Task CommitAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

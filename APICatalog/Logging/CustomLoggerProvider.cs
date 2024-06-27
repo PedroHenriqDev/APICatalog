@@ -1,24 +1,23 @@
 ﻿using System.Collections.Concurrent;
 
-namespace APICatalog.Logging
+namespace APICatalog.Logging;
+
+public class CustomLoggerProvider : ILoggerProvider
 {
-    public class CustomLoggerProvider : ILoggerProvider
+    readonly CustomLoggerProviderConfiguration loggerConfig;
+    readonly ConcurrentDictionary<string, CustomerLogger> loggers = new ConcurrentDictionary<string, CustomerLogger>();
+    public CustomLoggerProvider(CustomLoggerProviderConfiguration loggerConfig)
     {
-        readonly CustomLoggerProviderConfiguration loggerConfig;
-        readonly ConcurrentDictionary<string, CustomerLogger> loggers = new ConcurrentDictionary<string, CustomerLogger>();
-        public CustomLoggerProvider(CustomLoggerProviderConfiguration loggerConfig)
-        {
-            this.loggerConfig = loggerConfig;
-        }
+        this.loggerConfig = loggerConfig;
+    }
 
-        public ILogger CreateLogger(string categoryName)
-        {
-            return loggers.GetOrAdd(categoryName, name => new CustomerLogger(name, loggerConfig));
-        }
+    public ILogger CreateLogger(string categoryName)
+    {
+        return loggers.GetOrAdd(categoryName, name => new CustomerLogger(name, loggerConfig));
+    }
 
-        public void Dispose() 
-        {
-            loggers.Clear();
-        }
+    public void Dispose() 
+    {
+        loggers.Clear();
     }
 }

@@ -1,11 +1,12 @@
 ﻿using APICatalog.Domain;
+using APICatalog.Pagination;
 
-namespace APICatalog.Interfaces
+namespace APICatalog.Interfaces;
+
+public interface ICategoryRepository : IRepository<Category>
 {
-    public interface ICategoryRepository : IRepository<Category>
-    {
-       Task<IEnumerable<Category>> GetAllWithProductsAsync();
-       Task<Category> GetByIdWithProductsAsync(int id);
-       Task<Category> GetCategoryByNameAsync(string name);
-    }
+   Task<PagedList<Category>> GetCategoriesFilterNameAsync(CategoriesFilterNameParameters categoriesFilterNameParams);
+   Task<PagedList<Category>> GetCategoriesAsync(CategoriesParameters categoriesParams);
+   Task<Category> GetByIdWithProductsAsync(int id);
+   Task<Category> GetCategoryByNameAsync(string name);
 }

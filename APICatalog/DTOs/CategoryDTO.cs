@@ -1,16 +1,16 @@
-﻿using System.Collections.ObjectModel;
+﻿using APICatalog.Domain;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace APICatalog.Domain;
+namespace APICatalog.DTOs;
 
-public class Category
+public class CategoryDTO
 {
-    public Category()
+    public CategoryDTO()
     {
-        Products = new Collection<Product>();
+        Products = new Collection<ProductDTO>();
     }
 
-    [Key]
     public int CategoryId { get; set; }
 
     [Required]
@@ -21,5 +21,6 @@ public class Category
     [StringLength(300)]
     public string? ImageUrl { get; set; }
 
-    public ICollection<Product>? Products { get; set;}
+    public ICollection<ProductDTO>? Products { get; set; }
+
 }

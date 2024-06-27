@@ -1,116 +1,128 @@
 ﻿using APICatalog.Domain;
+using APICatalog.DTOs;
+using APICatalog.Extensions;
 using APICatalog.Filters;
 using APICatalog.Interfaces;
-using APICatalog.Repositories;
-using APICatalog.Services;
+using APICatalog.Pagination;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
-namespace APICatalog.Controllers
+namespace APICatalog.Controllers;
+
+[ServiceFilter(typeof(ApiLoggingFilter))]
+[Route("api/[controller]")]
+[ApiController]
+public class CategoriesController : ControllerBase
 {
-    [ServiceFilter(typeof(ApiLoggingFilter))]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CategoriesController : ControllerBase
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+
+    public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper)
     {
-        private readonly IUnitOfWork _unitOfWork;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+    }
 
-        public CategoriesController(IUnitOfWork unitOfWork)
+    [HttpGet("withproducts/{id:int:min(1)}")]
+    public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync(int id)
+    {
+        var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetByIdWithProductsAsync(id));
+        
+        if (categoryDto is null)
+            return NotFound($"Not found category with id = {id}");
+
+        return Ok(categoryDto);
+    }
+
+    [HttpGet]
+    [Authorize]
+
+    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAsync([FromQuery] CategoriesParameters categoriesParams)
+    {
+        var categories = await _unitOfWork.CategoryRepository.GetCategoriesAsync(categoriesParams);
+        
+        if (categories is null) 
+            return NotFound("Categories not found!");
+
+        return GetCategoriesMetaData(categories);
+    }
+
+    [HttpGet("filter/name")]
+    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategoriesFilterNameAsync([FromQuery] CategoriesFilterNameParameters categoriesFilterNameParams) 
+    {
+        var categories = await _unitOfWork.CategoryRepository.GetCategoriesFilterNameAsync(categoriesFilterNameParams);
+        return GetCategoriesMetaData(categories);
+    }
+
+    [HttpGet]
+    private ActionResult<IEnumerable<CategoryDTO>> GetCategoriesMetaData(PagedList<Category> categories) 
+    {
+        var metaData = new
         {
-            _unitOfWork = unitOfWork;
-        }
+            categories.PageSize,
+            categories.TotalCount,
+            categories.Count,
+            categories.TotalPages,
+            categories.HasNext,
+            categories.HasPrevious,
+            categories.CurrentPage
+        };
 
-        [HttpGet("UsingFromServices/{name}")]
-        public ActionResult<string> GetSalutationFromServices([FromServices] ISalutationService salutationService, string name)
-        {
-            return salutationService.Salutation(name);
-        }
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metaData));
 
-        [HttpGet("WithoutFromServices/{name}")]
-        public ActionResult<string> GetSalutationWithoutFromServices(ISalutationService salutationService, string name)
-        {
-            return salutationService.Salutation(name);
-        }
+        return Ok(_mapper.Map<IEnumerable<CategoryDTO>>(categories));
+    }
 
-        [HttpGet("withproducts")]
-        public async Task<ActionResult<IEnumerable<Category>>> GetAllWithProductsAsync()
-        {
-            var categories = await _unitOfWork.CategoryRepository.GetAllWithProductsAsync();
-            if(categories is null) 
-            {
-                return NotFound("Categories not found");
-            }
-            return Ok(categories);
-        }
+    [HttpGet("{id:int:min(1)}", Name = "GetCategory")]
+    public async Task<ActionResult<CategoryDTO>> GetAsync(int id)
+    {
+        var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id));
+        
+        if (categoryDto is null)
+            return NotFound($"No category found with id = {id}");
 
-        [HttpGet("withproducts/{id:int:min(1)}")]
-        public async Task<ActionResult<Category>> GetByIdWithProductsAsync(int id)
-        {
-            return Ok(await _unitOfWork.CategoryRepository.GetByIdWithProductsAsync(id));
-        }
+        return Ok(categoryDto);
+    }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetAsync()
-        {
-            var categories = await _unitOfWork.CategoryRepository.GetAllAsync();
+    [HttpPost]
+    public async Task<ActionResult<CategoryDTO>> PostAsync(CategoryDTO categoryDto)
+    {
+        if (categoryDto is null)
+            return BadRequest("Category null");
 
-            if (categories is null)
-            {
-                return NotFound("Categories not found!");
-            }
+        var createdCategory = await _unitOfWork.CategoryRepository.CreateAsync(_mapper.Map<Category>(categoryDto));
+        await _unitOfWork.CommitAsync();
+        
+        var createdCategoryDto = _mapper.Map<CategoryDTO>(createdCategory);
+       
+        return new CreatedAtRouteResult("GetCategory", new { id = createdCategoryDto.CategoryId }, createdCategoryDto);
+    }
 
-            return Ok(categories);
-        }
+    [HttpPut("{id:int:min(1)}")]
+    public async Task<ActionResult<CategoryDTO>> PutAsync(int id, CategoryDTO categoryDto)
+    {
+        if (id != categoryDto.CategoryId)
+            return BadRequest($"Ids entered do not match= {id}");
 
-        [HttpGet("{id:int:min(1)}", Name = "GetCategory")]
-        public async Task<ActionResult<Category>> GetAsync(int id)
-        {
-            var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);
-            if (category is null)
-            {
-                return NotFound($"No category found with id = {id}");
-            }
+        _unitOfWork.CategoryRepository.Update(_mapper.Map<Category>(categoryDto));
+        await _unitOfWork.CommitAsync();
+       
+        return Ok(categoryDto);
+    }
 
-            return Ok(category);
-        }
+    [HttpDelete("{id:int:min(1)}")]
+    public async Task<ActionResult<CategoryDTO>> DeleteAsnyc(int id)
+    {
+        var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);
+        
+        if (category is null)
+            return NotFound($"Not found category id = {id}");
 
-        [HttpPost]
-        public async Task<ActionResult> PostAsync(Category category)
-        {
-            if (category is null)
-            {
-                return BadRequest("Category null");
-            }
-
-            await _unitOfWork.CategoryRepository.CreateAsync(category);
-            await _unitOfWork.CommitAsync();
-            return new CreatedAtRouteResult("GetCategory", new { id = category.CategoryId }, category);
-        }
-
-        [HttpPut("{id:int:min(1)}")]
-        public async Task<ActionResult<Category>> PutAsync(int id, Category category)
-        {
-            if (id != category.CategoryId)
-            {
-                return BadRequest($"Ids entered do not match= {id}");
-            }
-
-            await _unitOfWork.CategoryRepository.UpdateAsync(category);
-            await _unitOfWork.CommitAsync();
-            return Ok(category);
-        }
-
-        [HttpDelete("{id:int:min(1)}")]
-        public async Task<ActionResult<Category>> DeleteAsnyc(int id)
-        {
-            var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);
-            if (category is null)
-            {
-                return NotFound($"Not found category id = {id}");
-            }
-
-            await _unitOfWork.CategoryRepository.DeleteAsync(category);
-            await _unitOfWork.CommitAsync();
-            return Ok(category);
-        }
+        _unitOfWork.CategoryRepository.Delete(category);
+        await _unitOfWork.CommitAsync();
+        
+        return Ok(_mapper.Map<CategoryDTO>(category));
     }
 }

@@ -1,3 +1,4 @@
+using APICatalog.AutoMapper;
 using APICatalog.Context;
 using APICatalog.Extensions;
 using APICatalog.Filters;
@@ -5,6 +6,7 @@ using APICatalog.Interfaces;
 using APICatalog.Logging;
 using APICatalog.Repositories;
 using APICatalog.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -12,20 +14,27 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers(options => 
+builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ApiExceptionFilter));
 }).AddJsonOptions(options =>
                   options.JsonSerializerOptions
-  .ReferenceHandler = ReferenceHandler.IgnoreCycles);
+  .ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ApiExceptionFilter>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddAuthentication("Bearer").AddJwtBearer();
+
+builder.Services.AddAutoMapper(typeof(DomainDTOMappingProfile));
 
 string npgConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+                            .AddEntityFrameworkStores<AppDbContext>()
+                            .AddDefaultTokenProviders();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
                     options.UseNpgsql(npgConnection));   
