@@ -1,4 +1,6 @@
-﻿namespace APICatalog.Services;
+﻿using APICatalog.Interfaces;
+
+namespace APICatalog.Services;
 
 public class SalutationService : ISalutationService
 {

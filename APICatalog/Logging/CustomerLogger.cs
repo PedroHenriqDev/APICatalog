@@ -30,7 +30,7 @@ public class CustomerLogger : ILogger
         }
         catch(Exception)
         {
-            throw;
+            return;
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using APICatalog.Validations;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace APICatalog.Domain;
@@ -19,6 +20,7 @@ public class Category
 
     [Required]
     [StringLength(300)]
+    [IsImageUrl]
     public string? ImageUrl { get; set; }
 
     public ICollection<Product>? Products { get; set;}

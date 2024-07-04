@@ -1,4 +1,4 @@
-﻿namespace APICatalog.Services;
+﻿namespace APICatalog.Interfaces;
 
 public interface ISalutationService
 {

@@ -4,6 +4,7 @@ using APICatalog.Filters;
 using APICatalog.Interfaces;
 using APICatalog.Pagination;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -11,8 +12,8 @@ using Newtonsoft.Json;
 namespace APICatalog.Controllers;
 
 [ServiceFilter(typeof(ApiLoggingFilter))]
-[ApiController]
 [Route("api/[controller]")]
+[ApiController]
 public class ProductsController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +25,7 @@ public class ProductsController : ControllerBase
         _mapper = mapper;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll([FromQuery] ProductsParameters productsParams)
     {
@@ -36,14 +38,14 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("filter/price")]
-    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFilterPrice([FromQuery] ProductsFilterPriceParameters productsFilterPriceParams) 
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFilterPrice([FromQuery] ProductsFilterPriceParameters productsFilterPriceParams)
     {
         var products = await _unitOfWork.ProductRepository.GetProductsFilterPriceAsync(productsFilterPriceParams);
         return GetProductsMetaData(products);
     }
 
     [HttpGet]
-    private ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<Product> products) 
+    private ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<Product> products)
     {
         var metaData = new
         {
@@ -107,7 +109,7 @@ public class ProductsController : ControllerBase
         return new CreatedAtRouteResult("GetProduct", new { id = createdProductDto.ProductId }, createdProductDto);
     }
 
-    [HttpPatch("UpdatePartial/{id:int:min(1)}")]
+    [HttpPatch("updatepartial/{id:int:min(1)}")]
     public async Task<ActionResult<ProductDTOResponse>> PatchAsync(int id, JsonPatchDocument<ProductDTORequest> productDtoPatch)
     {
         if (productDtoPatch is null || id <= 0)

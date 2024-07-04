@@ -18,8 +18,11 @@ public class DomainDTOMappingProfile : Profile
             Stock = product.Stock,
             DateRegister = product.DateRegister
         }))).ReverseMap();
+
         CreateMap<Product, ProductDTO>().ReverseMap();
         CreateMap<Product, ProductDTORequest>().ReverseMap();
-        CreateMap<Product, ProductDTOResponse>().ReverseMap();    
+        CreateMap<Product, ProductDTOResponse>().ReverseMap();  
+        CreateMap<Category, CategoryDTORequest>().ReverseMap();
+        CreateMap<Category, CategoryDTOResponse>().ReverseMap();
     }
 }

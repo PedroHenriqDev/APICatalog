@@ -1,11 +1,11 @@
 ﻿using APICatalog.Domain;
 using APICatalog.DTOs;
-using APICatalog.Extensions;
 using APICatalog.Filters;
 using APICatalog.Interfaces;
 using APICatalog.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -38,8 +38,7 @@ public class CategoriesController : ControllerBase
 
     [HttpGet]
     [Authorize]
-
-    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAsync([FromQuery] CategoriesParameters categoriesParams)
+    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllAsync([FromQuery] CategoriesParameters categoriesParams)
     {
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesAsync(categoriesParams);
         
@@ -100,6 +99,29 @@ public class CategoriesController : ControllerBase
         return new CreatedAtRouteResult("GetCategory", new { id = createdCategoryDto.CategoryId }, createdCategoryDto);
     }
 
+    [HttpPatch("updatepartial/{id:int:min(1)}")]
+    public async Task<ActionResult<CategoryDTOResponse>> PatchAsync(int id, JsonPatchDocument<CategoryDTORequest> categoryDtoPatch)
+    {
+        if(categoryDtoPatch is null || id < 0) 
+            return BadRequest();
+
+        var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);           
+        
+        if(category is null)
+            return BadRequest();
+
+        var categoryDtoRequest = _mapper.Map<CategoryDTORequest>(category);
+        categoryDtoPatch.ApplyTo(categoryDtoRequest);
+
+        if (!ModelState.IsValid || !TryValidateModel(ModelState))
+            return BadRequest(ModelState);
+
+        _mapper.Map(categoryDtoRequest, category);
+        _unitOfWork.CategoryRepository.Update(category);
+        await _unitOfWork.CommitAsync();
+
+        return Ok(_mapper.Map<CategoryDTOResponse>(category));
+    }
     [HttpPut("{id:int:min(1)}")]
     public async Task<ActionResult<CategoryDTO>> PutAsync(int id, CategoryDTO categoryDto)
     {

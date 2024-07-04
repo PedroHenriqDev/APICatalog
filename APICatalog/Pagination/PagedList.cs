@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace APICatalog.Pagination;
+﻿namespace APICatalog.Pagination;
 
 public class PagedList<T> : List<T> where T : class
 {
