@@ -5,12 +5,16 @@ using APICatalog.Interfaces;
 using APICatalog.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 
 namespace APICatalog.Controllers;
 
+[EnableRateLimiting("fixedwindow")]
+[EnableCors("allowedorigin")]
 [ServiceFilter(typeof(ApiLoggingFilter))]
 [Route("api/[controller]")]
 [ApiController]
@@ -37,7 +41,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize("AdminOnly")]
     public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllAsync([FromQuery] CategoriesParameters categoriesParams)
     {
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesAsync(categoriesParams);
@@ -54,7 +58,7 @@ public class CategoriesController : ControllerBase
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesFilterNameAsync(categoriesFilterNameParams);
         return GetCategoriesMetaData(categories);
     }
-
+        
     [HttpGet]
     private ActionResult<IEnumerable<CategoryDTO>> GetCategoriesMetaData(PagedList<Category> categories) 
     {
@@ -75,6 +79,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id:int:min(1)}", Name = "GetCategory")]
+    [Authorize(policy: "UserOnly")]
     public async Task<ActionResult<CategoryDTO>> GetAsync(int id)
     {
         var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id));
@@ -122,6 +127,7 @@ public class CategoriesController : ControllerBase
 
         return Ok(_mapper.Map<CategoryDTOResponse>(category));
     }
+
     [HttpPut("{id:int:min(1)}")]
     public async Task<ActionResult<CategoryDTO>> PutAsync(int id, CategoryDTO categoryDto)
     {

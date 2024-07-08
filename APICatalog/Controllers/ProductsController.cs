@@ -5,12 +5,16 @@ using APICatalog.Interfaces;
 using APICatalog.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 
 namespace APICatalog.Controllers;
 
+[EnableRateLimiting("fixedwindow")]
+[EnableCors("allowedorigin")]
 [ServiceFilter(typeof(ApiLoggingFilter))]
 [Route("api/[controller]")]
 [ApiController]
@@ -66,9 +70,10 @@ public class ProductsController : ControllerBase
     [HttpGet("category/{id:int:min(1)}")]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync(int id)
     {
-        var productsDto = _mapper.Map<ProductDTO>(await _unitOfWork.ProductRepository.GetByCategoryIdAsync(id));
+        var products = await _unitOfWork.ProductRepository.GetByCategoryIdAsync(id);
+        var productsDto = _mapper.Map<IEnumerable<ProductDTO>>(products);
 
-        if (productsDto is null)
+        if (!productsDto.Any())
             return NotFound("Products not found");
 
         return Ok(productsDto);
@@ -77,7 +82,8 @@ public class ProductsController : ControllerBase
     [HttpGet("withcategory/{id:int:min(1)}")]
     public async Task<ActionResult<ProductDTO>> GetByIdWithCategoryAsync(int id)
     {
-        var productDto = _mapper.Map<ProductDTO>(await _unitOfWork.ProductRepository.GetByIdWithCategoryAsync(id));
+        var product = await _unitOfWork.ProductRepository.GetByIdWithCategoryAsync(id);
+        var productDto = _mapper.Map<ProductDTO>(product);
 
         if (productDto is null)
             return NotFound($"Not found product with id = {id}");

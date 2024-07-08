@@ -5,16 +5,19 @@ using APICatalog.Extensions;
 using APICatalog.Filters;
 using APICatalog.Interfaces;
 using APICatalog.Logging;
+using APICatalog.Options;
 using APICatalog.Repositories;
 using APICatalog.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +30,6 @@ builder.Services.AddControllers(options =>
   .ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
-
 
 //Swagger Config
 builder.Services.AddSwaggerGen(c =>
@@ -53,14 +55,17 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new List<string>() 
+            new List<string>()
         }
     });
 });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", options => options.RequireRole("Admin"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+
+    options.AddPolicy("UserOnly", policy => policy.RequireAssertion(context =>
+                      context.User.IsInRole("User") || context.User.IsInRole("Admin")));
 });
 
 builder.Services.AddScoped<ApiLoggingFilter>();
@@ -116,6 +121,48 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.DisableImplicitFromServicesParameters = true;
 });
 
+var rateLimitOptions = new ApiRateLimitOptions();
+
+builder.Configuration.GetSection(ApiRateLimitOptions.ApiRateLimit).Bind(rateLimitOptions);
+
+builder.Services.AddRateLimiter(rateLimiterOptions =>
+{
+    rateLimiterOptions.AddFixedWindowLimiter("fixedwindow", options =>
+    {
+        options.PermitLimit = rateLimitOptions.PermitLimit;
+        options.Window = TimeSpan.FromSeconds(rateLimitOptions.Window);
+        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = rateLimitOptions.QueuLimit;
+    });
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
+builder.Services.AddRateLimiter(rateLimiterOptions =>
+{
+    rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    rateLimiterOptions.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.Identity?.Name ??
+                          httpContext.Request.Headers.Host.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 1,
+                Window = TimeSpan.FromSeconds(5),
+                QueueLimit = 0
+            }));
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("allowedorigin", policy =>
+    {
+        policy.WithOrigins("https://localhost:7151")
+        .WithMethods("GET", "POST")
+        .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -127,6 +174,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseRateLimiter();
+app.UseCors();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

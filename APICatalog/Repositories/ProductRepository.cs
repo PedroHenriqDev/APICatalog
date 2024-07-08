@@ -8,7 +8,7 @@ namespace APICatalog.Repositories;
 
 public class ProductRepository : Repository<Product>, IProductRepository
 {
-    public ProductRepository(AppDbContext context) : base(context) 
+    public ProductRepository(AppDbContext context) : base(context)
     {
     }
 
@@ -27,19 +27,19 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
         var products = await GetAllAsync();
 
-        if(productsParams.Price.HasValue && !string.IsNullOrEmpty(productsParams.PriceParameter)) 
+        if (productsParams.Price.HasValue && !string.IsNullOrEmpty(productsParams.PriceParameter))
         {
-            if(productsParams.PriceParameter.Equals("bigger", StringComparison.OrdinalIgnoreCase))
+            if (productsParams.PriceParameter.Equals("bigger", StringComparison.OrdinalIgnoreCase))
             {
                 products = products.Where(product => product.Price > productsParams.Price)
                     .OrderBy(product => product.Price);
             }
-            else if(productsParams.PriceParameter.Equals("equal", StringComparison.OrdinalIgnoreCase))
+            else if (productsParams.PriceParameter.Equals("equal", StringComparison.OrdinalIgnoreCase))
             {
-                products = products.Where(product => product.Price ==  productsParams.Price)
+                products = products.Where(product => product.Price == productsParams.Price)
                     .OrderBy(product => product.Price);
             }
-            else if (productsParams.PriceParameter.Equals("smaller")) 
+            else if (productsParams.PriceParameter.Equals("smaller"))
             {
                 products = products.Where(product => product.Price < productsParams.Price)
                     .OrderBy(product => product.Price);
@@ -51,10 +51,26 @@ public class ProductRepository : Repository<Product>, IProductRepository
                                               productsParams.PageSize);
     }
 
-    public async Task<Product> GetByIdWithCategoryAsync(int id)
+    public async Task<Product?> GetByIdWithCategoryAsync(int id)
     {
         return await _context.Products.AsNoTracking()
-                                      .Include(product => product.Category)
+                                      .Include(product => product.Category).Select(product => new Product
+                                      {
+                                          ImageUrl = product.ImageUrl,
+                                          CategoryId = product.CategoryId,
+                                          Name = product.Name,
+                                          ProductId = product.ProductId,
+                                          Price = product.Price,
+                                          Description = product.Description,
+                                          DateRegister = product.DateRegister,
+                                          Stock = product.Stock,
+                                          Category = new Category()
+                                          {
+                                              CategoryId = product.Category.CategoryId,
+                                              Name = product.Category.Name,
+                                              ImageUrl = product.Category.ImageUrl,
+                                          }
+                                      })
                                       .FirstOrDefaultAsync(product => product.ProductId == id);
     }
 
@@ -62,6 +78,23 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
         return await _context.Products.AsNoTracking()
                                       .Include(product => product.Category)
+                                      .Select(product => new Product 
+                                      {
+                                          ImageUrl = product.ImageUrl,
+                                          CategoryId = product.CategoryId,
+                                          Name = product.Name,
+                                          ProductId = product.ProductId,
+                                          Price = product.Price,
+                                          Description = product.Description,
+                                          DateRegister = product.DateRegister,
+                                          Stock = product.Stock,
+                                          Category = new Category()
+                                          {
+                                              CategoryId = product.Category.CategoryId,
+                                              Name = product.Category.Name,
+                                              ImageUrl = product.Category.ImageUrl,
+                                          }
+                                      })
                                       .Where(product => product.CategoryId == categoryId)
                                       .ToListAsync();
     }
