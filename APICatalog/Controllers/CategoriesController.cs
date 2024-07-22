@@ -1,8 +1,8 @@
-﻿using APICatalog.Domain;
-using APICatalog.DTOs;
+﻿using Infrastructure.Domain;
+using Application.DTOs;
 using APICatalog.Filters;
-using APICatalog.Interfaces;
-using APICatalog.Pagination;
+using Application.Interfaces;
+using Application.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -13,11 +13,12 @@ using Newtonsoft.Json;
 
 namespace APICatalog.Controllers;
 
-[EnableRateLimiting("fixedwindow")]
-[EnableCors("allowedorigin")]
+[ApiController]
 [ServiceFilter(typeof(ApiLoggingFilter))]
 [Route("api/[controller]")]
-[ApiController]
+[EnableRateLimiting("fixedwindow")]
+[EnableCors("allowedorigin")]
+[Produces("application/json")]
 public class CategoriesController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;

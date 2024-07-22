@@ -1,13 +1,14 @@
-using APICatalog.AutoMapper;
-using APICatalog.Context;
-using APICatalog.Domain;
+using Application.AutoMapper;
+using Infrastructure.Data;
+using Infrastructure.Domain;
 using APICatalog.Extensions;
 using APICatalog.Filters;
-using APICatalog.Interfaces;
-using APICatalog.Logging;
-using APICatalog.Options;
-using APICatalog.Repositories;
-using APICatalog.Services;
+using Application.Interfaces;
+using Application.Logging;
+using Configuration.Options;
+using Application.Repositories;
+using Application.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -31,10 +33,24 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-//Swagger Config
+//Swagger gen Config
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "apicatalog", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "apicatalog",
+        Version = "v1" 
+    });
+
+    c.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Title = "apicatalog",
+        Version = "v2",
+    });
+
+    var fileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, fileName));
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -70,6 +86,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ApiExceptionFilter>();
+builder.Services.AddScoped<IUserClaimService, UserClaimService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -121,18 +138,15 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.DisableImplicitFromServicesParameters = true;
 });
 
-var rateLimitOptions = new ApiRateLimitOptions();
-
-builder.Configuration.GetSection(ApiRateLimitOptions.ApiRateLimit).Bind(rateLimitOptions);
 
 builder.Services.AddRateLimiter(rateLimiterOptions =>
 {
     rateLimiterOptions.AddFixedWindowLimiter("fixedwindow", options =>
     {
-        options.PermitLimit = rateLimitOptions.PermitLimit;
-        options.Window = TimeSpan.FromSeconds(rateLimitOptions.Window);
+        options.PermitLimit = ApiRateLimitOptions.PermitLimit;
+        options.Window = TimeSpan.FromSeconds(ApiRateLimitOptions.Window);
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        options.QueueLimit = rateLimitOptions.QueuLimit;
+        options.QueueLimit = (ApiRateLimitOptions.QueuLimit);
     });
     rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
@@ -161,6 +175,20 @@ builder.Services.AddCors(options =>
         .WithMethods("GET", "POST")
         .AllowAnyHeader();
     });
+});
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+                               new QueryStringApiVersionReader(),
+                               new UrlSegmentApiVersionReader());
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 var app = builder.Build();

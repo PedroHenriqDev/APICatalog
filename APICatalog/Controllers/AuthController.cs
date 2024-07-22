@@ -1,8 +1,8 @@
-﻿using APICatalog.Domain;
-using APICatalog.DTOs;
+﻿using Infrastructure.Domain;
+using Application.DTOs;
 using APICatalog.Filters;
-using APICatalog.Interfaces;
-using APICatalog.Mapper;
+using Application.Interfaces;
+using Application.Mapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,71 +14,68 @@ namespace APICatalog.Controllers;
 [ServiceFilter(typeof(ApiLoggingFilter))]
 [Route("api/[controller]")]
 [ApiController]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
     private readonly ITokenService _tokenService;
+    private readonly IUserClaimService _claimService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<AuthController> _logger;
     private readonly IConfiguration _configuration;
 
     public AuthController(ITokenService tokenService,
+                          IUserClaimService claimService,
                           UserManager<ApplicationUser> userManager,
                           ILogger<AuthController> logger,
                           RoleManager<IdentityRole> roleManager,
                           IConfiguration configuration)
     {
         _tokenService = tokenService;
+        _claimService = claimService;
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Check a user's credentials
+    /// </summary>
+    /// <param name="modelDTO">Login model (DTO)</param>
+    /// <returns></returns>
     [HttpPost]
     [Route("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModelDTO loginModelDTO)
+    public async Task<IActionResult> Login([FromBody] LoginModelDTO modelDTO) 
     {
-        var user = await _userManager.FindByNameAsync(loginModelDTO.UserName!);
+        var user = await _userManager.FindByNameAsync(modelDTO.UserName!);
 
-        if (user is not null && await _userManager.CheckPasswordAsync(user, loginModelDTO.Password!))
+        if(user is not null && await _userManager.CheckPasswordAsync(user!, modelDTO.Password!)) 
         {
-            List<Claim> authClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            IList<string> userRoles = await _userManager.GetRolesAsync(user!);
-
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
-
-            JwtSecurityToken token = _tokenService.GenerateAccessToken(authClaims, _configuration);
-
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"],
-                             out int refreshTokenValidityInMinutes);
-
-            user.RefreshToken = refreshToken;
-
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenValidityInMinutes);
-
-            await _userManager.UpdateAsync(user);
-
-            return Ok(new
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                RefreshToken = refreshToken,
-                Expiration = token.ValidTo
-            });
+            return await LoginResponse(user!);
         }
 
         return Unauthorized();
+    }
+
+    [HttpGet]
+    private async Task<IActionResult> LoginResponse(ApplicationUser user) 
+    {
+        var authClaims = _claimService.CreateAuthClaims(user);
+
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+        _claimService.AddUserRolesToClaims(roles, authClaims);
+
+        var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
+
+        var refreshToken = await _tokenService.SaveRefreshTokenAsync(user, _configuration);
+
+        return Ok(new
+        {
+            Token = new JwtSecurityTokenHandler().WriteToken(token),
+            RefreshToken = refreshToken,
+            Expiration = token.ValidTo
+        });
     }
 
     [HttpPost]
@@ -115,12 +112,11 @@ public class AuthController : ControllerBase
             Status = "Error 500",
             Message = "User already exists"
         });
-
     }
 
     [HttpPost]
     [Route("refresh-token")]
-    public async Task<IActionResult> RefreshToken(TokenModelDTO tokenModelDTO)
+    public async Task<IActionResult> RefreshToken([FromBody] TokenModelDTO tokenModelDTO)
     {
         if (tokenModelDTO == null)
             return BadRequest("Invalid client request");
@@ -142,10 +138,8 @@ public class AuthController : ControllerBase
         }
 
         var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
-        var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-        user.RefreshToken = newRefreshToken;
-        await _userManager.UpdateAsync(user);
+        var newRefreshToken = await _tokenService.SaveRefreshTokenAsync(user, _configuration);
 
         return new ObjectResult(new
         {
@@ -208,6 +202,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("addUserToRole")]
+    [Authorize("AdminOnly")]
     public async Task<IActionResult> AddUserToRole([FromQuery] string email, [FromQuery] string roleName)
     {
         if (email == null || roleName == null)
