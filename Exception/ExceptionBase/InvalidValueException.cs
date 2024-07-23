@@ -2,9 +2,9 @@
 
 namespace ExceptionManager.ExceptionBase;
 
-public class SettingsNotFoundException : BaseException
+public class InvalidValueException : BaseException
 {
-    public SettingsNotFoundException(string message) : base(message) 
+    public InvalidValueException(string message) : base(message) 
     {
     }
 
@@ -15,6 +15,6 @@ public class SettingsNotFoundException : BaseException
 
     public override HttpStatusCode GetStatusCode()
     {
-        return HttpStatusCode.InternalServerError;
+        return HttpStatusCode.BadRequest;
     }
 }

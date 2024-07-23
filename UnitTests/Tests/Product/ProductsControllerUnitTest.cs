@@ -7,7 +7,7 @@ using Configuration.Resources;
 using Configuration.Settings;
 using Microsoft.EntityFrameworkCore;
 
-namespace UnitTests.Tests;
+namespace UnitTests.Tests.Products;
 
 public class ProductsControllerUnitTest
 {
@@ -15,17 +15,17 @@ public class ProductsControllerUnitTest
     public IUnitOfWork UnitOfWork;
     public static DbContextOptions<AppDbContext> DbOptions { get; }
 
-    static ProductsControllerUnitTest() 
+    static ProductsControllerUnitTest()
     {
         var connectionString = AppConfiguration.GetConnectionString(DefaultConnectionStringResource.NAME);
 
         var dbOptionsBuilder = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString);
-         
+
         DbOptions = dbOptionsBuilder.Options;
     }
 
-    public ProductsControllerUnitTest() 
+    public ProductsControllerUnitTest()
     {
         MapperConfiguration mapperConfig = new MapperConfiguration(config =>
         config.AddProfile(new DomainDTOMappingProfile()));

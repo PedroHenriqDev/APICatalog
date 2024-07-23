@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Infrastructure.Domain;
 
@@ -31,6 +32,8 @@ public class Product : IValidatableObject
     public float Stock {  get; set; }
     public DateTime DateRegister { get; set; }
     public int CategoryId {  get; set; }
+
+    [JsonIgnore]
     public Category? Category { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

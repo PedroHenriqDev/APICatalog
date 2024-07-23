@@ -3,6 +3,10 @@ using Infrastructure.Domain;
 using Application.Interfaces;
 using Application.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Application.Validators;
+using Configuration.Resources;
+using Application.Extensions;
+using ExceptionManager.ExceptionBase;
 
 namespace Application.Repositories;
 
@@ -21,31 +25,44 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
         var categoriesOrderedResult = PagedList<Category>.ToPagedList(categoriesOrdered,
                                                                       categoriesParams.PageNumber,
                                                                       categoriesParams.PageSize);
-        
+
         return categoriesOrderedResult;
     }
 
     public async Task<Category> GetByIdWithProductsAsync(int id)
     {
-        return await _context.Categories.AsNoTracking()
+        EntityValidator.ValidId<InvalidValueException>(id, ErrorMessagesResource.INVALID_ID.FormatErrorMessage(id));
+
+        var category = await _context.Categories.AsNoTracking()
                                         .Include(category => category.Products)
                                         .FirstOrDefaultAsync(category => category.CategoryId == id);
+
+        EntityValidator.ValidateNotNull<Category, NotFoundException>(category, ErrorMessagesResource.CATEGORY_ID_NOT_FOUND.FormatErrorMessage(id));
+
+        return category!;
     }
 
     public async Task<Category> GetCategoryByNameAsync(string name)
     {
-        return await _context.Categories.AsNoTracking()
+        EntityValidator.ValidateText<InvalidValueException>(name, ErrorMessagesResource.INVALID_CATEGORY_NAME);
+
+        var category = await _context.Categories.AsNoTracking()
                                         .FirstOrDefaultAsync(category => category.Name == name);
+
+        EntityValidator.ValidateNotNull<Category, NotFoundException>(category, ErrorMessagesResource.CATEGORY_NAME_NOT_FOUND.FormatErrorMessage(name));
+
+        return category!;
     }
 
     public async Task<PagedList<Category>> GetCategoriesFilterNameAsync(CategoriesFilterNameParameters categoriesFilterNameParams)
     {
+        EntityValidator.ValidateText<InvalidValueException>(categoriesFilterNameParams.CategoryName, ErrorMessagesResource.INVALID_CATEGORY_NAME);
+
         var categories = await GetAllAsync();
 
-        if (!string.IsNullOrWhiteSpace(categoriesFilterNameParams.CategoryName)) 
-        {
-            categories = categories.Where(category => category.Name.ToLower().Contains(categoriesFilterNameParams.CategoryName.ToLower())).OrderBy(category => category.Name);
-        }
+        EntityValidator.ValidateEnumerableNotEmpty<Category, NotFoundException>(categories, ErrorMessagesResource.CATEGORIES_NAME_NOT_FOUND.FormatErrorMessage(categoriesFilterNameParams.CategoryName));
+
+        categories = categories.Where(category => category.Name.ToLower().Contains(categoriesFilterNameParams.CategoryName.ToLower())).OrderBy(category => category.Name);
 
         return PagedList<Category>.ToPagedList(categories.AsQueryable(),
                                                categoriesFilterNameParams.PageNumber,

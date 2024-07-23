@@ -117,10 +117,40 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CATEGORIES_NAME_NOT_FOUND" xml:space="preserve">
+    <value>No categories were found that contain in their name: {0}</value>
+  </data>
+  <data name="CATEGORY_ID_NOT_FOUND" xml:space="preserve">
+    <value>Not found category id: {0}</value>
+  </data>
+  <data name="CATEGORY_ID_PRODUCTS_NOT_FOUND" xml:space="preserve">
+    <value>No products were found where the category id: {0}</value>
+  </data>
+  <data name="CATEGORY_NAME_NOT_FOUND" xml:space="preserve">
+    <value>Not found category name: {0}</value>
+  </data>
   <data name="CONFIG_NOT_FOUND" xml:space="preserve">
     <value>Not found in configuration</value>
   </data>
   <data name="CONNECTION_STRING_NOT_FOUND" xml:space="preserve">
     <value>Not found connection string</value>
+  </data>
+  <data name="HANDLER_EXCEPTION" xml:space="preserve">
+    <value>An error ocurred in handler exception</value>
+  </data>
+  <data name="INCOMPATIVE_BUILDERS" xml:space="preserve">
+    <value>Exception type {0} does not have a constructor that accepts a string.</value>
+  </data>
+  <data name="INVALID_CATEGORY_NAME" xml:space="preserve">
+    <value>Invalid category name</value>
+  </data>
+  <data name="INVALID_ID" xml:space="preserve">
+    <value>Invalid id: {0}</value>
+  </data>
+  <data name="PRODUCT_ID_NOT_FOUND" xml:space="preserve">
+    <value>Not found product id: {0}</value>
+  </data>
+  <data name="UNKNOWN_ERROR" xml:space="preserve">
+    <value>Unknown error</value>
   </data>
 </root>

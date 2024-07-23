@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
+using Communication.Responses;
 
 namespace APICatalog.Controllers;
 
@@ -30,19 +31,20 @@ public class ProductsController : ControllerBase
         _mapper = mapper;
     }
 
-    [Authorize]
     [HttpGet]
+    [Authorize("AdminOnly")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll([FromQuery] ProductsParameters productsParams)
     {
         var products = await _unitOfWork.ProductRepository.GetProductsAsync(productsParams);
-
-        if (products is null)
-            return NotFound("Products not found");
 
         return GetProductsMetaData(products);
     }
 
     [HttpGet("filter/price")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFilterPrice([FromQuery] ProductsFilterPriceParameters productsFilterPriceParams)
     {
         var products = await _unitOfWork.ProductRepository.GetProductsFilterPriceAsync(productsFilterPriceParams);
@@ -69,36 +71,33 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("category/{id:int:min(1)}")]
+    [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync(int id)
     {
         var products = await _unitOfWork.ProductRepository.GetByCategoryIdAsync(id);
         var productsDto = _mapper.Map<IEnumerable<ProductDTO>>(products);
-
-        if (!productsDto.Any())
-            return NotFound("Products not found");
-
+        
         return Ok(productsDto);
     }
 
     [HttpGet("withcategory/{id:int:min(1)}")]
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProductDTO>> GetByIdWithCategoryAsync(int id)
     {
         var product = await _unitOfWork.ProductRepository.GetByIdWithCategoryAsync(id);
         var productDto = _mapper.Map<ProductDTO>(product);
 
-        if (productDto is null)
-            return NotFound($"Not found product with id = {id}");
-
         return Ok(productDto);
     }
 
     [HttpGet("{id:int:min(1)}", Name = "GetProduct")]
-    public async Task<ActionResult<ProductDTO>> GetAsync(int id)
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDTO>> GetByIdAsync(int id)
     {
         var productDto = _mapper.Map<ProductDTO>(await _unitOfWork.ProductRepository.GetAsync(product => product.ProductId == id));
-
-        if (productDto is null)
-            return NotFound($"Not found product id = {id}");
 
         return Ok(productDto);
     }

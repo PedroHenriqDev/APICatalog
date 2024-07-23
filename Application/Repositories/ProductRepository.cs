@@ -3,6 +3,11 @@ using Infrastructure.Domain;
 using Application.Interfaces;
 using Application.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Application.Validators;
+using Configuration.Resources;
+using ExceptionManager.ExceptionBase;
+using Application.Extensions;
+using Application.Mapper;
 
 namespace Application.Repositories;
 
@@ -27,23 +32,21 @@ public class ProductRepository : Repository<Product>, IProductRepository
     {
         var products = await GetAllAsync();
 
-        if (productsParams.Price.HasValue && !string.IsNullOrEmpty(productsParams.PriceParameter))
+        if(productsParams.Price.HasValue && !string.IsNullOrEmpty(productsParams.PriceParameter))
         {
-            if (productsParams.PriceParameter.Equals("bigger", StringComparison.OrdinalIgnoreCase))
+            products = productsParams.PriceParameter.ToLower() switch
             {
-                products = products.Where(product => product.Price > productsParams.Price)
-                    .OrderBy(product => product.Price);
-            }
-            else if (productsParams.PriceParameter.Equals("equal", StringComparison.OrdinalIgnoreCase))
-            {
-                products = products.Where(product => product.Price == productsParams.Price)
-                    .OrderBy(product => product.Price);
-            }
-            else if (productsParams.PriceParameter.Equals("smaller"))
-            {
-                products = products.Where(product => product.Price < productsParams.Price)
-                    .OrderBy(product => product.Price);
-            }
+                "bigger" => products = products.Where(product => product.Price > productsParams.Price)
+                    .OrderBy(product => product.Price),
+
+                "equal" => products = products.Where(product => product.Price == productsParams.Price)
+                    .OrderBy(product => product.Price),
+
+                "smaller" => products = products.Where(product => product.Price < productsParams.Price)
+                    .OrderBy(product => product.Price),
+
+                _ => products
+            };
         }
 
         return PagedList<Product>.ToPagedList(products.AsQueryable(),
@@ -53,49 +56,34 @@ public class ProductRepository : Repository<Product>, IProductRepository
 
     public async Task<Product?> GetByIdWithCategoryAsync(int id)
     {
-        return await _context.Products.AsNoTracking()
-                                      .Include(product => product.Category).Select(product => new Product
-                                      {
-                                          ImageUrl = product.ImageUrl,
-                                          CategoryId = product.CategoryId,
-                                          Name = product.Name,
-                                          ProductId = product.ProductId,
-                                          Price = product.Price,
-                                          Description = product.Description,
-                                          DateRegister = product.DateRegister,
-                                          Stock = product.Stock,
-                                          Category = new Category()
-                                          {
-                                              CategoryId = product.Category.CategoryId,
-                                              Name = product.Category.Name,
-                                              ImageUrl = product.Category.ImageUrl,
-                                          }
-                                      })
-                                      .FirstOrDefaultAsync(product => product.ProductId == id);
+        EntityValidator.ValidId<InvalidValueException>(id, ErrorMessagesResource.INVALID_ID.FormatErrorMessage(id));
+
+        var products = await _context.Products
+            .AsNoTracking()
+            .Include(product => product.Category)
+            .FirstOrDefaultAsync(product => product.ProductId == id);
+
+        EntityValidator.ValidateNotNull<int, NotFoundException>(id, ErrorMessagesResource.PRODUCT_ID_NOT_FOUND.FormatErrorMessage(id));
+
+        var completeProduct = products!.MapProductWithCategory();
+
+        return completeProduct;
     }
 
     public async Task<IEnumerable<Product>> GetByCategoryIdAsync(int categoryId)
     {
-        return await _context.Products.AsNoTracking()
-                                      .Include(product => product.Category)
-                                      .Select(product => new Product 
-                                      {
-                                          ImageUrl = product.ImageUrl,
-                                          CategoryId = product.CategoryId,
-                                          Name = product.Name,
-                                          ProductId = product.ProductId,
-                                          Price = product.Price,
-                                          Description = product.Description,
-                                          DateRegister = product.DateRegister,
-                                          Stock = product.Stock,
-                                          Category = new Category()
-                                          {
-                                              CategoryId = product.Category.CategoryId,
-                                              Name = product.Category.Name,
-                                              ImageUrl = product.Category.ImageUrl,
-                                          }
-                                      })
-                                      .Where(product => product.CategoryId == categoryId)
-                                      .ToListAsync();
+        EntityValidator.ValidId<InvalidValueException>(categoryId, ErrorMessagesResource.INVALID_ID.FormatErrorMessage(categoryId));
+
+        var products = await _context.Products
+            .AsNoTracking()
+            .Include(product => product.Category)
+            .Where(product => product.CategoryId == categoryId)
+            .ToListAsync();
+
+        EntityValidator.ValidateEnumerableNotEmpty<Product, NotFoundException>(products, ErrorMessagesResource.CATEGORY_ID_PRODUCTS_NOT_FOUND.FormatErrorMessage(categoryId));
+
+        var completeProducts = products.Select(product => product.MapProductWithCategory());
+
+        return completeProducts;
     }
 }

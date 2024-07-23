@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
+using Communication.Responses;
 
 namespace APICatalog.Controllers;
 
@@ -31,29 +32,28 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("withproducts/{id:int:min(1)}")]
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync(int id)
     {
         var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetByIdWithProductsAsync(id));
         
-        if (categoryDto is null)
-            return NotFound($"Not found category with id = {id}");
-
         return Ok(categoryDto);
     }
 
     [HttpGet]
-    [Authorize("AdminOnly")]
+    [Authorize(policy: "AdminOnly")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllAsync([FromQuery] CategoriesParameters categoriesParams)
     {
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesAsync(categoriesParams);
-        
-        if (categories is null) 
-            return NotFound("Categories not found!");
 
         return GetCategoriesMetaData(categories);
     }
 
     [HttpGet("filter/name")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategoriesFilterNameAsync([FromQuery] CategoriesFilterNameParameters categoriesFilterNameParams) 
     {
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesFilterNameAsync(categoriesFilterNameParams);
@@ -80,14 +80,13 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id:int:min(1)}", Name = "GetCategory")]
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status404NotFound)]
     [Authorize(policy: "UserOnly")]
-    public async Task<ActionResult<CategoryDTO>> GetAsync(int id)
+    public async Task<ActionResult<CategoryDTO>> GetByIdAsync(int id)
     {
         var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id));
         
-        if (categoryDto is null)
-            return NotFound($"No category found with id = {id}");
-
         return Ok(categoryDto);
     }
 

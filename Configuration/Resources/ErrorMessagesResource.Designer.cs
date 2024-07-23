@@ -22,7 +22,7 @@ namespace Configuration.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ErrorMessagesResource {
+    public class ErrorMessagesResource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Configuration.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Configuration.Resources.ErrorMessagesResource", typeof(ErrorMessagesResource).Assembly);
@@ -51,7 +51,7 @@ namespace Configuration.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,9 +61,45 @@ namespace Configuration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No categories were found that contain in their name: {0}.
+        /// </summary>
+        public static string CATEGORIES_NAME_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("CATEGORIES_NAME_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not found category id: {0}.
+        /// </summary>
+        public static string CATEGORY_ID_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("CATEGORY_ID_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No products were found where the category id: {0}.
+        /// </summary>
+        public static string CATEGORY_ID_PRODUCTS_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("CATEGORY_ID_PRODUCTS_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not found category name: {0}.
+        /// </summary>
+        public static string CATEGORY_NAME_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("CATEGORY_NAME_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not found in configuration.
         /// </summary>
-        internal static string CONFIG_NOT_FOUND {
+        public static string CONFIG_NOT_FOUND {
             get {
                 return ResourceManager.GetString("CONFIG_NOT_FOUND", resourceCulture);
             }
@@ -72,9 +108,63 @@ namespace Configuration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Not found connection string.
         /// </summary>
-        internal static string CONNECTION_STRING_NOT_FOUND {
+        public static string CONNECTION_STRING_NOT_FOUND {
             get {
                 return ResourceManager.GetString("CONNECTION_STRING_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error ocurred in handler exception.
+        /// </summary>
+        public static string HANDLER_EXCEPTION {
+            get {
+                return ResourceManager.GetString("HANDLER_EXCEPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception type {0} does not have a constructor that accepts a string..
+        /// </summary>
+        public static string INCOMPATIVE_BUILDERS {
+            get {
+                return ResourceManager.GetString("INCOMPATIVE_BUILDERS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid category name.
+        /// </summary>
+        public static string INVALID_CATEGORY_NAME {
+            get {
+                return ResourceManager.GetString("INVALID_CATEGORY_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid id: {0}.
+        /// </summary>
+        public static string INVALID_ID {
+            get {
+                return ResourceManager.GetString("INVALID_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not found product id: {0}.
+        /// </summary>
+        public static string PRODUCT_ID_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("PRODUCT_ID_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown error.
+        /// </summary>
+        public static string UNKNOWN_ERROR {
+            get {
+                return ResourceManager.GetString("UNKNOWN_ERROR", resourceCulture);
             }
         }
     }
