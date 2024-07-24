@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs
+﻿namespace Communication.DTOs
 {
     public class TokenModelDTO
     {

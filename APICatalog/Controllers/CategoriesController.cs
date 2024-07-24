@@ -1,5 +1,5 @@
 ﻿using Infrastructure.Domain;
-using Application.DTOs;
+using Communication.DTOs;
 using APICatalog.Filters;
 using Application.Interfaces;
 using Application.Pagination;
@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
-using Communication.Responses;
+using Communication.DTOs.Responses;
+using Communication.DTOs.Requests;
+using Application.UseCases.Categories;
 
 namespace APICatalog.Controllers;
 
@@ -24,16 +26,18 @@ public class CategoriesController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly CalculateStatsUseCase _statsUseCase;
 
-    public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper)
+    public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper, CalculateStatsUseCase statsUseCase)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _statsUseCase = statsUseCase;
     }
 
     [HttpGet("withproducts/{id:int:min(1)}")]
     [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync(int id)
     {
         var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetByIdWithProductsAsync(id));
@@ -51,9 +55,19 @@ public class CategoriesController : ControllerBase
         return GetCategoriesMetaData(categories);
     }
 
+    [HttpGet]
+    [Route("stats")]
+    [ProducesResponseType(typeof(ResponseCategoriesStatsDTO), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ResponseCategoriesStatsDTO>> GetStatsAsync([FromQuery] CategoriesParameters categoriesParams) 
+    {
+        var result = await _statsUseCase.ExecuteAsync(categoriesParams);
+
+        return result;
+    }
+
     [HttpGet("filter/name")]
     [ProducesResponseType(typeof(IEnumerable<CategoryDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorsJson), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategoriesFilterNameAsync([FromQuery] CategoriesFilterNameParameters categoriesFilterNameParams) 
     {
         var categories = await _unitOfWork.CategoryRepository.GetCategoriesFilterNameAsync(categoriesFilterNameParams);
@@ -105,7 +119,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPatch("updatepartial/{id:int:min(1)}")]
-    public async Task<ActionResult<CategoryDTOResponse>> PatchAsync(int id, JsonPatchDocument<CategoryDTORequest> categoryDtoPatch)
+    public async Task<ActionResult<ResponseCategoryDTO>> PatchAsync(int id, JsonPatchDocument<RequestCategoryDTO> categoryDtoPatch)
     {
         if(categoryDtoPatch is null || id < 0) 
             return BadRequest();
@@ -115,7 +129,7 @@ public class CategoriesController : ControllerBase
         if(category is null)
             return BadRequest();
 
-        var categoryDtoRequest = _mapper.Map<CategoryDTORequest>(category);
+        var categoryDtoRequest = _mapper.Map<RequestCategoryDTO>(category);
         categoryDtoPatch.ApplyTo(categoryDtoRequest);
 
         if (!ModelState.IsValid || !TryValidateModel(ModelState))
@@ -125,7 +139,7 @@ public class CategoriesController : ControllerBase
         _unitOfWork.CategoryRepository.Update(category);
         await _unitOfWork.CommitAsync();
 
-        return Ok(_mapper.Map<CategoryDTOResponse>(category));
+        return Ok(_mapper.Map<ResponseCategoryDTO>(category));
     }
 
     [HttpPut("{id:int:min(1)}")]

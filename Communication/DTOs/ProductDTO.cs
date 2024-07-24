@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs;
+namespace Communication.DTOs;
 
 public class ProductDTO
 {

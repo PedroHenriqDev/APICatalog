@@ -1,10 +1,10 @@
-﻿namespace Communication.Responses
+﻿namespace Communication.DTOs.Responses
 {
-    public class ResponseErrorsJson
+    public class ResponseErrorsDTO
     {
         public IList<string> ErrorMessages { get; set; } = new List<string>();
 
-        public ResponseErrorsJson(IList<string> errorMessages)
+        public ResponseErrorsDTO(IList<string> errorMessages)
         {
             ErrorMessages = errorMessages;
         }

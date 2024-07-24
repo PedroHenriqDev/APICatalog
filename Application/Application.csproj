@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Communication\Communication.csproj" />
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\Exception\ExceptionManager.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />

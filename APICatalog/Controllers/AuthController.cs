@@ -1,5 +1,5 @@
 ﻿using Infrastructure.Domain;
-using Application.DTOs;
+using Communication.DTOs;
 using APICatalog.Filters;
 using Application.Interfaces;
 using Application.Mapper;
@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Communication.DTOs.Requests;
+using Communication.DTOs.Responses;
 
 namespace APICatalog.Controllers;
 
@@ -80,7 +82,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModelDTO registerModelDTO)
+    public async Task<IActionResult> Register([FromBody] RequestUserDTO registerModelDTO)
     {
         var userExists = await _userManager.FindByNameAsync(registerModelDTO.UserName!);
 

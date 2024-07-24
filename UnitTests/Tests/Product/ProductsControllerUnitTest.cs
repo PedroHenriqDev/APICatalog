@@ -28,7 +28,7 @@ public class ProductsControllerUnitTest
     public ProductsControllerUnitTest()
     {
         MapperConfiguration mapperConfig = new MapperConfiguration(config =>
-        config.AddProfile(new DomainDTOMappingProfile()));
+        config.AddProfile(new MappingProfile()));
 
         Mapper = mapperConfig.CreateMapper();
 

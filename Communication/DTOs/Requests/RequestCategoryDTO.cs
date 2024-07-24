@@ -1,9 +1,9 @@
 ﻿using Infrastructure.Validations;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs;
+namespace Communication.DTOs.Requests;
 
-public class CategoryDTORequest
+public class RequestCategoryDTO
 {
     [StringLength(80, MinimumLength = 1, ErrorMessage = "The {0} must be {1} to {2} characters long")]
     public string? Name { get; set; }

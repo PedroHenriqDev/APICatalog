@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Application.UseCases.Categories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,8 +90,10 @@ builder.Services.AddScoped<ApiExceptionFilter>();
 builder.Services.AddScoped<IUserClaimService, UserClaimService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<CalculateStatsUseCase>();
+builder.Services.AddScoped<CategoryRepository>();
 
-builder.Services.AddAutoMapper(typeof(DomainDTOMappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 string npgConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 

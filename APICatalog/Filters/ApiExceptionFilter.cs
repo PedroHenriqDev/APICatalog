@@ -1,5 +1,4 @@
-﻿using Communication.Responses;
-using Configuration.Resources;
+﻿using Configuration.Resources;
 using ExceptionManager.ExceptionBase;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

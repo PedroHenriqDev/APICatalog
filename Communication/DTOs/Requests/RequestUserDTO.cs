@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs
+namespace Communication.DTOs.Requests
 {
-    public class RegisterModelDTO
+    public class RequestUserDTO
     {
         [Required(ErrorMessage = "User name is required")]
         public string? UserName { get; set; }

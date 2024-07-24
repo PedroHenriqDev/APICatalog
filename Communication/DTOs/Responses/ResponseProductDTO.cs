@@ -1,8 +1,8 @@
 ﻿using Infrastructure.Domain;
 
-namespace Application.DTOs;
+namespace Communication.DTOs.Responses;
 
-public class ProductDTOResponse
+public class ResponseProductDTO
 {
     public int ProductId { get; set; }
     public string? Name { get; set; }

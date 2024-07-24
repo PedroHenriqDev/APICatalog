@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs;
+namespace Communication.DTOs;
 
 public class CategoryDTO
 {

@@ -1,6 +1,6 @@
-﻿namespace Application.DTOs;
+﻿namespace Communication.DTOs.Responses;
 
-public class CategoryDTOResponse
+public class ResponseCategoryDTO
 {
     public int CategoryId { get; set; }
     public string? Name { get; set; }
