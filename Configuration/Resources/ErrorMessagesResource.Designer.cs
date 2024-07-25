@@ -61,6 +61,15 @@ namespace Configuration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} must be from {1} and {2}.
+        /// </summary>
+        public static string ATTRIBUTE_RANGE_MESSAGE {
+            get {
+                return ResourceManager.GetString("ATTRIBUTE_RANGE_MESSAGE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No categories were found that contain in their name: {0}.
         /// </summary>
         public static string CATEGORIES_NAME_NOT_FOUND {
@@ -115,11 +124,29 @@ namespace Configuration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description cannot be empty.
+        /// </summary>
+        public static string DESCRIPTION_EMPTY {
+            get {
+                return ResourceManager.GetString("DESCRIPTION_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error ocurred in handler exception.
         /// </summary>
         public static string HANDLER_EXCEPTION {
             get {
                 return ResourceManager.GetString("HANDLER_EXCEPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image cannot be empty.
+        /// </summary>
+        public static string IMAGE_EMPTY {
+            get {
+                return ResourceManager.GetString("IMAGE_EMPTY", resourceCulture);
             }
         }
         
@@ -151,11 +178,74 @@ namespace Configuration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Price must be greater than 0.
+        /// </summary>
+        public static string INVALID_PRICE {
+            get {
+                return ResourceManager.GetString("INVALID_PRICE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stock cannot be negative.
+        /// </summary>
+        public static string INVALID_STOCK {
+            get {
+                return ResourceManager.GetString("INVALID_STOCK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string INVALID_VALUES_PATCH {
+            get {
+                return ResourceManager.GetString("INVALID_VALUES_PATCH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name cannot be empty.
+        /// </summary>
+        public static string NAME_EMPTY {
+            get {
+                return ResourceManager.GetString("NAME_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not found.
+        /// </summary>
+        public static string NOT_FOUND {
+            get {
+                return ResourceManager.GetString("NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not found product id: {0}.
         /// </summary>
         public static string PRODUCT_ID_NOT_FOUND {
             get {
                 return ResourceManager.GetString("PRODUCT_ID_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No products found with price: {0}.
+        /// </summary>
+        public static string PRODUCTS_PRICE_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("PRODUCTS_PRICE_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No products found with category id: {0}.
+        /// </summary>
+        public static string PRODUCTS_WITH_CATEGORY_ID_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("PRODUCTS_WITH_CATEGORY_ID_NOT_FOUND", resourceCulture);
             }
         }
         

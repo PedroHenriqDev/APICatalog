@@ -1,4 +1,5 @@
-﻿using Configuration.Resources;
+﻿using Communication.DTOs.Responses;
+using Configuration.Resources;
 using ExceptionManager.ExceptionBase;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -23,7 +24,7 @@ public class ApiExceptionFilter : IExceptionFilter
             var exception = (BaseException)context.Exception;
             context.HttpContext.Response.StatusCode = (int)exception.GetStatusCode();
 
-            var response = new ResponseErrorsJson(exception.GetErrorMessages());
+            var response = new ResponseErrorsDTO(exception.GetErrorMessages());
 
             context.Result = new ObjectResult(response);
         }
@@ -31,7 +32,7 @@ public class ApiExceptionFilter : IExceptionFilter
         {
             context.HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-            var response = new ResponseErrorsJson([ErrorMessagesResource.UNKNOWN_ERROR]);
+            var response = new ResponseErrorsDTO([ErrorMessagesResource.UNKNOWN_ERROR]);
 
             context.Result = new ObjectResult(response);
         }

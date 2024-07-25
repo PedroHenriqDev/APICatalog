@@ -1,14 +1,24 @@
-using Application.AutoMapper;
-using Infrastructure.Data;
-using Infrastructure.Domain;
 using APICatalog.Extensions;
 using APICatalog.Filters;
+using Application.AutoMapper.Profiles;
 using Application.Interfaces;
+using Application.Interfaces.Managers;
+using Application.Interfaces.Providers.Categories;
+using Application.Interfaces.Providers.Products;
 using Application.Logging;
-using Configuration.Options;
+using Application.Managers;
+using Application.Providers.Categories;
+using Application.Providers.Products;
 using Application.Repositories;
 using Application.Services;
+using Application.Services.Tokens;
+using Application.Services.Users;
+using Application.Validations.Categories;
+using Application.Validations.Products;
 using Asp.Versioning;
+using Configuration.Options;
+using Infrastructure.Data;
+using Infrastructure.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +30,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using Application.UseCases.Categories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,13 +94,43 @@ builder.Services.AddAuthorization(options =>
                       context.User.IsInRole("User") || context.User.IsInRole("Admin")));
 });
 
+// Filters
 builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ApiExceptionFilter>();
+
+// Services
 builder.Services.AddScoped<IUserClaimService, UserClaimService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<CalculateStatsUseCase>();
-builder.Services.AddScoped<CategoryRepository>();
+
+// Unit of Work
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Category Validations
+builder.Services.AddScoped<CategoryValidation>();
+builder.Services.AddScoped<RequestPatchCategoryDTOValidation>();
+
+//Product Validations
+builder.Services.AddScoped<ProductValidation>();
+builder.Services.AddScoped<RequestProductDTOValidation>();
+
+//Managers
+builder.Services.AddScoped<ICategoryUseCaseManager, CategoryUseCaseManager>();
+builder.Services.AddScoped<IProductUseCaseManager, ProductUseCaseManager>();
+
+//Providers Category
+builder.Services.AddScoped<IGetCategoryUseCaseProvider, GetCategoryUseCaseProvider>();
+builder.Services.AddScoped<IPostCategoryUseCaseProvider, PostCategoryUseCaseProvider>();
+builder.Services.AddScoped<IPutCategoryUseCaseProvider, PutCategoryUseCaseProvider>();
+builder.Services.AddScoped<IPatchCategoryUseCaseProvider, PatchCategoryUseCaseProvider>();
+builder.Services.AddScoped<IDeleteCategoryUseCaseProvider, DeleteCategoryUseCaseProvider>();
+builder.Services.AddScoped<IStatsCategoryUseCaseProvider, StatsCategoryUseCaseProvider>();
+
+//Providers Product
+builder.Services.AddScoped<IGetProductUseCaseProvider, GetProductUseCaseProvider>();
+builder.Services.AddScoped<IPostProductUseCaseProvider, PostProductUseCaseProvider>();
+builder.Services.AddScoped<IPutProductUseCaseProvider, PutProductUseCaseProvider>();
+builder.Services.AddScoped<IPatchProductUseCaseProvider, PatchProductUseCaseProvider>();
+builder.Services.AddScoped<IDeleteProductUseCaseProvider, DeleteProductUseCaseProvider>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

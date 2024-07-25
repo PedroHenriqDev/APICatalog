@@ -1,9 +1,6 @@
-﻿using Infrastructure.Domain;
-using Communication.DTOs;
+﻿using Communication.DTOs;
 using APICatalog.Filters;
-using Application.Interfaces;
 using Application.Pagination;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
@@ -11,10 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using Communication.DTOs.Responses;
-using Communication.DTOs;
 using Communication.DTOs.Requests;
-using Application.Extensions;
-using Configuration.Resources;
+using AutoMapper;
+using Application.Interfaces.Managers;
 
 namespace APICatalog.Controllers;
 
@@ -26,13 +22,13 @@ namespace APICatalog.Controllers;
 [Produces("application/json")]
 public class ProductsController : ControllerBase
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IProductUseCaseManager _useCaseManager;
 
-    public ProductsController(IUnitOfWork unitOfWork, IMapper mapper)
+    public ProductsController(IMapper mapper, IProductUseCaseManager useCaseManager)
     {
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _useCaseManager = useCaseManager;
     }
 
     [HttpGet]
@@ -41,131 +37,114 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll([FromQuery] ProductsParameters productsParams)
     {
-        var products = await _unitOfWork.ProductRepository.GetProductsAsync(productsParams);
+        var productsDTO = await _useCaseManager.GetProvider.GetUseCase.ExecuteAsync(productsParams);
 
-        return GetProductsMetaData(products);
+        return GetProductsMetaData(productsDTO);
+    }
+
+    [HttpGet("{id:int:min(1)}", Name = "GetProduct")]
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDTO>> GetByIdAsync([FromRoute] int id)
+    {
+        var productDTO = await _useCaseManager.GetProvider.GetByIdUseCase.ExecuteAsync(id);
+
+        return Ok(productDTO);
     }
 
     [HttpGet("filter/price")]
     [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFilterPrice([FromQuery] ProductsFilterPriceParameters productsFilterPriceParams)
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFilterPrice([FromQuery] ProductsFilterPriceParameters productsPriceParams)
     {
-        var products = await _unitOfWork.ProductRepository.GetProductsFilterPriceAsync(productsFilterPriceParams);
+        var products = await _useCaseManager.GetProvider.GetFilterPriceUseCase.ExecuteAsync(productsPriceParams);
         return GetProductsMetaData(products);
-    }
-
-    [HttpGet]
-    private ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<Product> products)
-    {
-        var metaData = new
-        {
-            products.TotalPages,
-            products.TotalCount,
-            products.PageSize,
-            products.CurrentPage,
-            products.HasNext,
-            products.HasPrevious,
-        };
-
-        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metaData));
-
-        var productsDto = _mapper.Map<IEnumerable<ProductDTO>>(products);
-        return Ok(productsDto);
     }
 
     [HttpGet("category/{id:int:min(1)}")]
     [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync(int id)
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync([FromRoute] int id)
     {
-        var products = await _unitOfWork.ProductRepository.GetByCategoryIdAsync(id);
-        var productsDto = _mapper.Map<IEnumerable<ProductDTO>>(products);
+        var products = await _useCaseManager.GetProvider.GetByCategoryIdUseCase.ExecuteAsync(id);
         
-        return Ok(productsDto);
+        return GetProductsMetaData(_mapper.Map<PagedList<ProductDTO>>(products));
     }
 
     [HttpGet("withcategory/{id:int:min(1)}")]
     [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDTO>> GetByIdWithCategoryAsync(int id)
+    public async Task<ActionResult<ProductDTO>> GetByIdWithCategoryAsync([FromRoute] int id)
     {
-        var product = await _unitOfWork.ProductRepository.GetByIdWithCategoryAsync(id);
-        var productDto = _mapper.Map<ProductDTO>(product);
+        var productDTO = await _useCaseManager.GetProvider.GetByIdWithCategoryUseCase.ExecuteAsync(id);
 
-        return Ok(productDto);
+        return Ok(productDTO);
     }
 
-    [HttpGet("{id:int:min(1)}", Name = "GetProduct")]
-    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDTO>> GetByIdAsync(int id)
+    private ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<ProductDTO> productsDTO)
     {
-        var productDto = _mapper.Map<ProductDTO>(await _unitOfWork.ProductRepository.GetAsync(product => product.ProductId == id));
+        var metaData = new
+        {
+            productsDTO.TotalPages,
+            productsDTO.TotalCount,
+            productsDTO.PageSize,
+            productsDTO.CurrentPage,
+            productsDTO.HasNext,
+            productsDTO.HasPrevious,
+        };
 
-        return Ok(productDto);
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metaData));
+
+        return Ok(productsDTO);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ProductDTO>> PostAsync(Product product)
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ProductDTO>> PostAsync(ProductDTO productDTO)
     {
-        if (product is null) if (product is null)
-                return NotFound("Product null");
+        var createdProductDTO = await _useCaseManager.PostProvider.RegisterUseCase.ExecuteAsync(productDTO);
 
-        var createdProduct = await _unitOfWork.ProductRepository.CreateAsync(product);
-        await _unitOfWork.CommitAsync();
-
-        var createdProductDto = _mapper.Map<ProductDTO>(createdProduct);
-        return new CreatedAtRouteResult("GetProduct", new { id = createdProductDto.ProductId }, createdProductDto);
+        return new CreatedAtRouteResult("GetProduct", new { id = createdProductDTO.ProductId }, createdProductDTO);
     }
 
     [HttpPatch("updatepartial/{id:int:min(1)}")]
-    public async Task<ActionResult<ResponseProductDTO>> PatchAsync(int id, JsonPatchDocument<RequestProductDTO> productDtoPatch)
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDTO>> PatchAsync(int id, JsonPatchDocument<RequestPatchProductDTO> productDtoPatch)
     {
-        if (productDtoPatch is null || id <= 0)
-            return BadRequest();
-
-        var product = await _unitOfWork.ProductRepository.GetAsync(product => product.ProductId == id);
-
-        if (product is null)
-            return NotFound($"Not found product id = {id}");
-
-        var productDtoRequest = _mapper.Map<RequestProductDTO>(product);
-        productDtoPatch.ApplyTo(productDtoRequest, ModelState);
+        var product = await _useCaseManager.PatchProvider.PatchUseCase.ExecuteAsync(id, productDtoPatch);
 
         if (!ModelState.IsValid || !TryValidateModel(ModelState))
             return BadRequest(ModelState);
 
-        _mapper.Map(productDtoRequest, product);
-        _unitOfWork.ProductRepository.Update(product);
-        await _unitOfWork.CommitAsync();
+        var updateProduct = await _useCaseManager.PutProvider.PutUseCase.ExecuteAsync(id, _mapper.Map<ProductDTO>(product));
 
-        return Ok(_mapper.Map<ResponseProductDTO>(product));
+        return Ok(updateProduct);
     }
 
     [HttpPut("{id:int:min(1)}")]
-    public async Task<ActionResult<ProductDTO>> PutAsync(int id, Product product)
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDTO>> PutAsync([FromRoute] int id, ProductDTO productDTO)
     {
-        if (product.ProductId != id)
-            return BadRequest($"Ids entered not matched = {id}");
+       var updatedProductDTO = await _useCaseManager.PutProvider.PutUseCase.ExecuteAsync(id, productDTO);
 
-        _unitOfWork.ProductRepository.Update(product);
-        await _unitOfWork.CommitAsync();
-
-        return Ok(_mapper.Map<ProductDTO>(product));
+        return Ok(updatedProductDTO);
     }
 
     [HttpDelete("{id:int:min(1)}")]
-    public async Task<ActionResult<ProductDTO>> DeleteAsync(int id)
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductDTO>> DeleteAsync([FromRoute] int id)
     {
-        var product = await _unitOfWork.ProductRepository.GetAsync(product => product.ProductId == id);
-
-        if (product is null)
-            return NotFound(ErrorMessagesResource.PRODUCT_ID_NOT_FOUND.FormatErrorMessage(id));
-
-        _unitOfWork.ProductRepository.Delete(product);
-        await _unitOfWork.CommitAsync();
-
-        return Ok(_mapper.Map<ProductDTO>(product));
+        var deletedProductDTO = await _useCaseManager.DeleteProvider.DeleteByIdUseCase.ExecuteAsync(id);
+        
+        return Ok(deletedProductDTO);
     }
 }

@@ -41,25 +41,6 @@ public class AuthController : ControllerBase
         _configuration = configuration;
     }
 
-    /// <summary>
-    /// Check a user's credentials
-    /// </summary>
-    /// <param name="modelDTO">Login model (DTO)</param>
-    /// <returns></returns>
-    [HttpPost]
-    [Route("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModelDTO modelDTO) 
-    {
-        var user = await _userManager.FindByNameAsync(modelDTO.UserName!);
-
-        if(user is not null && await _userManager.CheckPasswordAsync(user!, modelDTO.Password!)) 
-        {
-            return await LoginResponse(user!);
-        }
-
-        return Unauthorized();
-    }
-
     [HttpGet]
     private async Task<IActionResult> LoginResponse(ApplicationUser user) 
     {
@@ -78,6 +59,25 @@ public class AuthController : ControllerBase
             RefreshToken = refreshToken,
             Expiration = token.ValidTo
         });
+    }
+
+    /// <summary>
+    /// Check a user's credentials
+    /// </summary>
+    /// <param name="modelDTO">Login model (DTO)</param>
+    /// <returns></returns>
+    [HttpPost]
+    [Route("login")]
+    public async Task<IActionResult> Login([FromBody] LoginModelDTO modelDTO)
+    {
+        var user = await _userManager.FindByNameAsync(modelDTO.UserName!);
+
+        if (user is not null && await _userManager.CheckPasswordAsync(user!, modelDTO.Password!))
+        {
+            return await LoginResponse(user!);
+        }
+
+        return Unauthorized();
     }
 
     [HttpPost]

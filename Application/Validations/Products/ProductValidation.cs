@@ -17,11 +17,11 @@ public class ProductValidation : AbstractValidator<ProductDTO>
             .WithMessage(ErrorMessagesResource.DESCRIPTION_EMPTY);
 
         RuleFor(product => product.Price)
-            .LessThanOrEqualTo(0)
+            .GreaterThanOrEqualTo(1)
             .WithMessage(ErrorMessagesResource.INVALID_PRICE);
 
-        RuleFor(product => product.Stock).
-            LessThan(0)
+        RuleFor(product => product.Stock)
+            .GreaterThanOrEqualTo(1)
             .WithMessage(ErrorMessagesResource.INVALID_STOCK);
     }
 }

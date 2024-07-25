@@ -30,7 +30,7 @@ public static class StatsExtension
         return 0;
     }
 
-    public static double CalculateAvarage(this IEnumerable<double> set) 
+    public static double CalculateAvarage(this IEnumerable<double> set)
     {
         if (set.Any())
         {
@@ -40,7 +40,7 @@ public static class StatsExtension
         return 0;
     }
 
-    public static double ModeWithLinq(this IEnumerable<double> set) 
+    public static double ModeWithLinq(this IEnumerable<double> set)
     {
         if (set.Any())
         {

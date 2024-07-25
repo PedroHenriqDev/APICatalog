@@ -1,9 +1,6 @@
-﻿using Infrastructure.Domain;
-using Communication.DTOs;
+﻿using Communication.DTOs;
 using APICatalog.Filters;
-using Application.Interfaces;
 using Application.Pagination;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
@@ -12,7 +9,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using Communication.DTOs.Responses;
 using Communication.DTOs.Requests;
-using Application.UseCases.Categories;
+using AutoMapper;
+using Application.Interfaces.Managers;
 
 namespace APICatalog.Controllers;
 
@@ -24,147 +22,124 @@ namespace APICatalog.Controllers;
 [Produces("application/json")]
 public class CategoriesController : ControllerBase
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly CalculateStatsUseCase _statsUseCase;
+    private readonly ICategoryUseCaseManager _useCaseManager;
 
-    public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper, CalculateStatsUseCase statsUseCase)
+    public CategoriesController(IMapper mapper, ICategoryUseCaseManager useCaseManager)
     {
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _statsUseCase = statsUseCase;
-    }
-
-    [HttpGet("withproducts/{id:int:min(1)}")]
-    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync(int id)
-    {
-        var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetByIdWithProductsAsync(id));
-        
-        return Ok(categoryDto);
+        _useCaseManager = useCaseManager;
     }
 
     [HttpGet]
+    [Route("all")]
     [Authorize(policy: "AdminOnly")]
-    [ProducesResponseType(typeof(IEnumerable<CategoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedList<CategoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAllAsync([FromQuery] CategoriesParameters categoriesParams)
     {
-        var categories = await _unitOfWork.CategoryRepository.GetCategoriesAsync(categoriesParams);
+        var categoriesDTO = await _useCaseManager.GetProvider.GetUseCase.ExecuteAsync(categoriesParams);
+       
+        return GetCategoriesMetaData(categoriesDTO);
+    }
 
-        return GetCategoriesMetaData(categories);
+    [HttpGet]
+    [Route("withproducts/{id:int:min(1)}")]
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync([FromRoute] int id)
+    {
+        var categoryDTO = await _useCaseManager.GetProvider.GetByIdWithProductsUseCase.ExecuteAsync(id);
+        return Ok(categoryDTO);
     }
 
     [HttpGet]
     [Route("stats")]
     [ProducesResponseType(typeof(ResponseCategoriesStatsDTO), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ResponseCategoriesStatsDTO>> GetStatsAsync([FromQuery] CategoriesParameters categoriesParams) 
+    public async Task<ActionResult<ResponseCategoriesStatsDTO>> GetStatsAsync([FromQuery] CategoriesParameters categoriesParams)
     {
-        var result = await _statsUseCase.ExecuteAsync(categoriesParams);
-
-        return result;
+        var statsDTO = await _useCaseManager.StatsProvider.StatsUseCase.ExecuteAsync(categoriesParams);
+        return Ok(statsDTO);
     }
 
-    [HttpGet("filter/name")]
-    [ProducesResponseType(typeof(IEnumerable<CategoryDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategoriesFilterNameAsync([FromQuery] CategoriesFilterNameParameters categoriesFilterNameParams) 
-    {
-        var categories = await _unitOfWork.CategoryRepository.GetCategoriesFilterNameAsync(categoriesFilterNameParams);
-        return GetCategoriesMetaData(categories);
-    }
-        
     [HttpGet]
-    private ActionResult<IEnumerable<CategoryDTO>> GetCategoriesMetaData(PagedList<Category> categories) 
+    [Route("filter/name")]
+    [ProducesResponseType(typeof(PagedList<CategoryDTO>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategoriesFilterNameAsync([FromQuery] CategoriesFilterNameParameters categoriesNameParams)
     {
-        var metaData = new
-        {
-            categories.PageSize,
-            categories.TotalCount,
-            categories.Count,
-            categories.TotalPages,
-            categories.HasNext,
-            categories.HasPrevious,
-            categories.CurrentPage
-        };
-
-        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metaData));
-
-        return Ok(_mapper.Map<IEnumerable<CategoryDTO>>(categories));
+        var categoriesDTO = await _useCaseManager.GetProvider.GetFilterNameUseCase.ExecuteAsync(categoriesNameParams);
+        return GetCategoriesMetaData(categoriesDTO);
     }
 
     [HttpGet("{id:int:min(1)}", Name = "GetCategory")]
+    [Authorize(policy: "UserOnly")]
     [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status404NotFound)]
-    [Authorize(policy: "UserOnly")]
-    public async Task<ActionResult<CategoryDTO>> GetByIdAsync(int id)
+    public async Task<ActionResult<CategoryDTO>> GetByIdAsync([FromRoute] int id)
     {
-        var categoryDto = _mapper.Map<CategoryDTO>(await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id));
-        
-        return Ok(categoryDto);
+        var categoryDTO = await _useCaseManager.GetProvider.GetByIdUseCase.ExecuteAsync(id);
+        return Ok(categoryDTO);
+    }
+
+    private ActionResult<IEnumerable<CategoryDTO>> GetCategoriesMetaData(PagedList<CategoryDTO> categoriesDTO)
+    {
+        var metaData = new
+        {
+            categoriesDTO.PageSize,
+            categoriesDTO.TotalCount,
+            categoriesDTO.Count,
+            categoriesDTO.TotalPages,
+            categoriesDTO.HasNext,
+            categoriesDTO.HasPrevious,
+            categoriesDTO.CurrentPage
+        };
+
+        Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metaData));
+        return Ok(categoriesDTO);
     }
 
     [HttpPost]
-    public async Task<ActionResult<CategoryDTO>> PostAsync(CategoryDTO categoryDto)
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CategoryDTO>> PostAsync(CategoryDTO categoryDTO)
     {
-        if (categoryDto is null)
-            return BadRequest("Category null");
-
-        var createdCategory = await _unitOfWork.CategoryRepository.CreateAsync(_mapper.Map<Category>(categoryDto));
-        await _unitOfWork.CommitAsync();
-        
-        var createdCategoryDto = _mapper.Map<CategoryDTO>(createdCategory);
-       
-        return new CreatedAtRouteResult("GetCategory", new { id = createdCategoryDto.CategoryId }, createdCategoryDto);
+        var createdCategoryDTO = await _useCaseManager.PostProvider.RegisterUseCase.ExecuteAsync(categoryDTO);
+        return new CreatedAtRouteResult("GetCategory", new { id = createdCategoryDTO.CategoryId }, createdCategoryDTO);
     }
 
-    [HttpPatch("updatepartial/{id:int:min(1)}")]
-    public async Task<ActionResult<ResponseCategoryDTO>> PatchAsync(int id, JsonPatchDocument<RequestCategoryDTO> categoryDtoPatch)
+    [HttpPatch]
+    [Route("updatepartial/{id:int:min(1)}")]
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CategoryDTO>> PatchAsync([FromRoute] int id, JsonPatchDocument<RequestPatchCategoryDTO> patchRequest)
     {
-        if(categoryDtoPatch is null || id < 0) 
-            return BadRequest();
-
-        var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);           
-        
-        if(category is null)
-            return BadRequest();
-
-        var categoryDtoRequest = _mapper.Map<RequestCategoryDTO>(category);
-        categoryDtoPatch.ApplyTo(categoryDtoRequest);
+        var category = await _useCaseManager.PatchProvider.PatchUseCase.ExecuteAsync(id, patchRequest);
 
         if (!ModelState.IsValid || !TryValidateModel(ModelState))
             return BadRequest(ModelState);
 
-        _mapper.Map(categoryDtoRequest, category);
-        _unitOfWork.CategoryRepository.Update(category);
-        await _unitOfWork.CommitAsync();
-
-        return Ok(_mapper.Map<ResponseCategoryDTO>(category));
+        var categoryDTO = await _useCaseManager.PutProvider.UpdateUseCase.ExecuteAsync(id, _mapper.Map<CategoryDTO>(category));
+        return Ok(categoryDTO);
     }
 
     [HttpPut("{id:int:min(1)}")]
-    public async Task<ActionResult<CategoryDTO>> PutAsync(int id, CategoryDTO categoryDto)
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<CategoryDTO>> PutAsync([FromRoute] int id, CategoryDTO categoryDTO)
     {
-        if (id != categoryDto.CategoryId)
-            return BadRequest($"Ids entered do not match= {id}");
+        var category = await _useCaseManager.PutProvider.UpdateUseCase.ExecuteAsync(id, categoryDTO);
 
-        _unitOfWork.CategoryRepository.Update(_mapper.Map<Category>(categoryDto));
-        await _unitOfWork.CommitAsync();
-       
-        return Ok(categoryDto);
+        return Ok(category);
     }
 
     [HttpDelete("{id:int:min(1)}")]
-    public async Task<ActionResult<CategoryDTO>> DeleteAsnyc(int id)
+    [ProducesResponseType(typeof(CategoryDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CategoryDTO>> DeleteAsnyc([FromRoute] int id)
     {
-        var category = await _unitOfWork.CategoryRepository.GetAsync(category => category.CategoryId == id);
-        
-        if (category is null)
-            return NotFound($"Not found category id = {id}");
-
-        _unitOfWork.CategoryRepository.Delete(category);
-        await _unitOfWork.CommitAsync();
-        
-        return Ok(_mapper.Map<CategoryDTO>(category));
+        var categoryDTO = await _useCaseManager.DeleteProvider.DeleteByIdUseCase.ExecuteAsync(id);
+        return Ok(categoryDTO);
     }
 }

@@ -6,12 +6,12 @@ namespace Application.Validations;
 
 public static class EntityValidatorHelper
 {
-    public static void ValidId<TException>(int id, string possibleErrorMessage)
-        where TException : BaseException
+    public static void ValidId(int id)
     {
         if (id <= 0)
         {
-            throw CreateException<TException>(possibleErrorMessage);
+            var errorMessage = ErrorMessagesResource.INVALID_ID.FormatErrorMessage(id);
+            throw CreateException<InvalidValueException>(errorMessage);
         }
     }
 

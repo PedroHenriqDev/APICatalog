@@ -9,11 +9,11 @@ public class RequestPatchCategoryDTOValidation : AbstractValidator<RequestPatchC
     public RequestPatchCategoryDTOValidation()
     {
 
-        RuleFor(category => category.Name)
+        RuleFor(request => request.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesResource.NAME_EMPTY);
 
-        RuleFor(category => category.ImageUrl)
+        RuleFor(request => request.ImageUrl)
             .NotEmpty()
             .WithMessage(ErrorMessagesResource.IMAGE_EMPTY);
     }
