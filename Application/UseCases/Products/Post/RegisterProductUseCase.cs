@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Application.Validations;
+using Application.Interfaces.UseCases.Products.Post;
 using Application.Validations.Products;
 using AutoMapper;
 using Communication.DTOs;
@@ -8,7 +8,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Products.Post;
 
-public class RegisterProductUseCase : UseCase
+public class RegisterProductUseCase : UseCase, IRegisterProductUseCase
 {
     private readonly ProductValidation _validation;
 

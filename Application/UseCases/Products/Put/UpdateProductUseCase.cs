@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Products.Put;
 using Application.Validations;
 using Application.Validations.Products;
 using AutoMapper;
@@ -10,11 +11,11 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Products.Put;
 
-public class PutProductUseCase : UseCase
+public class UpdateProductUseCase : UseCase, IUpdateProductUseCase
 {
     private readonly ProductValidation _validation;
 
-    public PutProductUseCase(IUnitOfWork unitOfWork, IMapper mapper, ProductValidation validation) : base(unitOfWork, mapper)
+    public UpdateProductUseCase(IUnitOfWork unitOfWork, IMapper mapper, ProductValidation validation) : base(unitOfWork, mapper)
     {
         _validation = validation;
     }

@@ -1,14 +1,16 @@
-﻿using Application.UseCases.Categories.Get;
+﻿using Application.Interfaces.UseCases.Categories.Get;
 
 namespace Application.Interfaces.Providers.Categories;
 
 public interface IGetCategoryUseCaseProvider
 {
-    GetCategoryByIdUseCase GetByIdUseCase { get; }
+    IGetCategoryByIdUseCase GetByIdUseCase { get; }
 
-    GetCategoryByIdWithProductsUseCase GetByIdWithProductsUseCase { get; }
+    IGetCategoryByIdWithProductsUseCase GetByIdWithProductsUseCase { get; }
 
-    GetCategoriesFilterNameUseCase GetFilterNameUseCase { get; }
+    IGetCategoriesFilterNameUseCase GetFilterNameUseCase { get; }
 
-    GetCategoriesUseCase GetUseCase { get; }
+    IGetCategoriesUseCase GetUseCase { get; }
+
+    IGetCategoriesStatsUseCase GetStatsUseCase { get; }
 }

@@ -23,7 +23,8 @@ public class MappingProfile : Profile
             DateRegister = product.DateRegister
         }))).ReverseMap();
 
-        CreateMap(typeof(PagedList<>), typeof(PagedList<>)).ConvertUsing(typeof(PagedListConverter<,>));
+        CreateMap(typeof(PagedList<>), typeof(PagedList<>))
+            .ConvertUsing(typeof(PagedListConverter<,>));
 
         CreateMap<Product, ProductDTO>().ReverseMap();
         CreateMap<Product, RequestPatchProductDTO>().ReverseMap();

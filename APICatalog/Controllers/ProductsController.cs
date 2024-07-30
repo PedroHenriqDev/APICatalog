@@ -66,11 +66,13 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ProductDTO>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync([FromRoute] int id)
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetByCategoryIdAsync([FromRoute] int id, [FromQuery] ProductsParameters productParams)
     {
-        var products = await _useCaseManager.GetProvider.GetByCategoryIdUseCase.ExecuteAsync(id);
-        
-        return GetProductsMetaData(_mapper.Map<PagedList<ProductDTO>>(products));
+        var productsDTO = await _useCaseManager.GetProvider.GetByCategoryIdUseCase.ExecuteAsync(id, productParams);
+
+        var okResult = GetProductsMetaData(productsDTO);
+
+        return okResult;
     }
 
     [HttpGet("withcategory/{id:int:min(1)}")]
@@ -84,7 +86,8 @@ public class ProductsController : ControllerBase
         return Ok(productDTO);
     }
 
-    private ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<ProductDTO> productsDTO)
+    [NonAction]
+    public ActionResult<IEnumerable<ProductDTO>> GetProductsMetaData(PagedList<ProductDTO> productsDTO)
     {
         var metaData = new
         {
@@ -104,7 +107,7 @@ public class ProductsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProductDTO>> PostAsync(ProductDTO productDTO)
+    public async Task<ActionResult<ProductDTO>> PostAsync([FromBody] ProductDTO productDTO)
     {
         var createdProductDTO = await _useCaseManager.PostProvider.RegisterUseCase.ExecuteAsync(productDTO);
 
@@ -115,7 +118,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDTO>> PatchAsync(int id, JsonPatchDocument<RequestPatchProductDTO> productDtoPatch)
+    public async Task<ActionResult<ProductDTO>> PatchAsync([FromRoute]int id, JsonPatchDocument<RequestPatchProductDTO> productDtoPatch)
     {
         var product = await _useCaseManager.PatchProvider.PatchUseCase.ExecuteAsync(id, productDtoPatch);
 
@@ -131,7 +134,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ResponseErrorsDTO), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProductDTO>> PutAsync([FromRoute] int id, ProductDTO productDTO)
+    public async Task<ActionResult<ProductDTO>> PutAsync([FromRoute] int id, [FromBody] ProductDTO productDTO)
     {
        var updatedProductDTO = await _useCaseManager.PutProvider.PutUseCase.ExecuteAsync(id, productDTO);
 

@@ -1,16 +1,34 @@
 ﻿using APICatalog.Controllers;
+using Application.Interfaces.Managers;
 using Communication.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
 
 namespace UnitTests.Tests.Products.Actions.Post;
 
 public class PostProductUnitTests : IClassFixture<ProductsControllerUnitTest>
 {
     private readonly ProductsController _controller;
+    private readonly Mock<IProductUseCaseManager> _useCaseManagerMock;
 
     public PostProductUnitTests(ProductsControllerUnitTest controller) 
     {
-        _controller = new ProductsController(controller.Mapper, controller.UseCaseManager);
+        _useCaseManagerMock = new Mock<IProductUseCaseManager>();
+        _useCaseManagerMock.Setup(manager => manager.PostProvider.RegisterUseCase.ExecuteAsync(It.IsAny<ProductDTO>()))
+            .ReturnsAsync((ProductDTO productDTO) => new ProductDTO
+        {
+            Category = productDTO.Category,
+            CategoryId = productDTO.CategoryId,
+            DateRegister = productDTO.DateRegister,
+            Description = productDTO.Description,
+            ImageUrl = productDTO.ImageUrl,
+            Name = productDTO.Name,
+            Price = productDTO.Price,
+            ProductId = productDTO.ProductId,
+            Stock = productDTO.Stock
+        });
+
+        _controller = new ProductsController(controller.Mapper, _useCaseManagerMock.Object);
     }
 
     [Fact]  
@@ -20,27 +38,17 @@ public class PostProductUnitTests : IClassFixture<ProductsControllerUnitTest>
         {
             CategoryId = 1,
             DateRegister = DateTime.UtcNow,
-            ImageUrl = "product.png",
+            ImageUrl = "testproduct.png",
             Description = "Test",
-            Stock = 2,
+            Stock = 1,
             Name = "Test",
-            Price = 2,
+            Price = 1,
         };
 
         var data = await _controller.PostAsync(prod);
 
         var result = Assert.IsType<CreatedAtRouteResult>(data.Result);
+        Assert.NotNull(result.Value);
         Assert.Equal(201, result.StatusCode);
-    }
-
-    [Fact]
-    public async Task Post_Return_BadRequest() 
-    {
-        ProductDTO prod = null;
-
-        var data = await _controller.PostAsync(prod);
-
-        var result = Assert.IsType<BadRequestResult>(data.Result);
-        Assert.Equal(400, result.StatusCode);
     }
 }

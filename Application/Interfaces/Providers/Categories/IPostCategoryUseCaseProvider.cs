@@ -1,8 +1,9 @@
-﻿using Application.UseCases.Categories.Post;
+﻿using Application.Interfaces.UseCases.Categories.Post;
+using Application.UseCases.Categories.Post;
 
 namespace Application.Interfaces.Providers.Categories;
 
 public interface IPostCategoryUseCaseProvider
 {
-    RegisterCategoryUseCase RegisterUseCase { get; }
+    IRegisterCategoryUseCase RegisterUseCase { get; }
 }

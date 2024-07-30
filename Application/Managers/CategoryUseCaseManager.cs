@@ -10,20 +10,17 @@ public class CategoryUseCaseManager : ICategoryUseCaseManager
     public IPatchCategoryUseCaseProvider PatchProvider { get; }
     public IPutCategoryUseCaseProvider PutProvider { get; }
     public IDeleteCategoryUseCaseProvider DeleteProvider { get; }
-    public IStatsCategoryUseCaseProvider StatsProvider { get; }
 
     public CategoryUseCaseManager(IGetCategoryUseCaseProvider getProvider,
                                   IPostCategoryUseCaseProvider postProvider,
                                   IPatchCategoryUseCaseProvider patchProvider, 
                                   IPutCategoryUseCaseProvider putProvider, 
-                                  IDeleteCategoryUseCaseProvider deleteProvider,
-                                  IStatsCategoryUseCaseProvider statsProvider)
+                                  IDeleteCategoryUseCaseProvider deleteProvider)
     {
         GetProvider = getProvider;
         PostProvider = postProvider;
         PatchProvider = patchProvider;
         PutProvider = putProvider;
         DeleteProvider = deleteProvider;
-        StatsProvider = statsProvider;
     }
 }

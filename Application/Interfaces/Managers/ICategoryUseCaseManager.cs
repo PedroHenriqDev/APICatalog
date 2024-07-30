@@ -9,5 +9,4 @@ public interface ICategoryUseCaseManager
     IPatchCategoryUseCaseProvider PatchProvider { get; }
     IPutCategoryUseCaseProvider PutProvider { get; }
     IDeleteCategoryUseCaseProvider DeleteProvider { get; }
-    IStatsCategoryUseCaseProvider StatsProvider { get; }
 }

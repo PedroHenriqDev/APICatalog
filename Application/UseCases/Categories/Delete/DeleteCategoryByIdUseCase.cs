@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Delete;
 using Application.Validations;
 using AutoMapper;
 using Communication.DTOs;
@@ -9,7 +10,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Categories.Delete;
 
-public class DeleteCategoryByIdUseCase : UseCase
+public class DeleteCategoryByIdUseCase : UseCase, IDeleteCategoryByIdUseCase
 {
     public DeleteCategoryByIdUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)  
     {

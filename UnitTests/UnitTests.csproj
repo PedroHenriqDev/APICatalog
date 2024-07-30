@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\APICatalog\APICatalog.csproj" />
+    <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>

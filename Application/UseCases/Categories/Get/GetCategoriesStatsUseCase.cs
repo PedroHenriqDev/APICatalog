@@ -1,15 +1,15 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Get;
 using Application.Pagination;
-using Application.Repositories;
 using AutoMapper;
 using Communication.DTOs.Responses;
 
-namespace Application.UseCases.Categories.Stats;
+namespace Application.UseCases.Categories.Get;
 
-public class CalculateStatsUseCase : UseCase
+public class GetCategoriesStatsUseCase : UseCase, IGetCategoriesStatsUseCase
 {
-    public CalculateStatsUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
+    public GetCategoriesStatsUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
     {
     }
 

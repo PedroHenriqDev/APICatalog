@@ -1,5 +1,5 @@
-﻿using Infrastructure.Domain;
-using Application.Pagination;
+﻿using Application.Pagination;
+using Infrastructure.Domain;
 
 namespace Application.Interfaces;
 
@@ -8,5 +8,5 @@ public interface IProductRepository : IRepository<Product>
     Task<PagedList<Product>> GetProductsFilterPriceAsync(ProductsFilterPriceParameters productsParams);
     Task<PagedList<Product>> GetProductsAsync(ProductsParameters productsParams);
     Task<Product?> GetByIdWithCategoryAsync(int id);
-    Task<IEnumerable<Product>> GetByCategoryIdAsync(int categoryId);
+    Task<PagedList<Product>> GetByCategoryIdAsync(int categoryId, ProductsParameters productParams);
 }

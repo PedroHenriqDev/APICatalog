@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Get;
 using Application.Validations;
 using AutoMapper;
 using Communication.DTOs;
@@ -9,7 +10,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Categories.Get;
 
-public class GetCategoryByIdWithProductsUseCase : UseCase
+public class GetCategoryByIdWithProductsUseCase : UseCase, IGetCategoryByIdWithProductsUseCase
 {
     public GetCategoryByIdWithProductsUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
     {

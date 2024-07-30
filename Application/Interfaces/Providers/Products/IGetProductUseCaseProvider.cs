@@ -1,16 +1,16 @@
-﻿using Application.UseCases.Products.Get;
+﻿using Application.Interfaces.UseCases.Products.Get;
 
 namespace Application.Interfaces.Providers.Products;
 
 public interface IGetProductUseCaseProvider
 {
-    GetProductsUseCase GetUseCase { get; }
+    IGetProductsUseCase GetUseCase { get; }
 
-    GetProductsFilterPriceUseCase GetFilterPriceUseCase { get; }
+    IGetProductsFilterPriceUseCase GetFilterPriceUseCase { get; }
 
-    GetProductByIdUseCase GetByIdUseCase { get; }
+    IGetProductByIdUseCase GetByIdUseCase { get; }
 
-    GetProductByIdWithCategoryUseCase GetByIdWithCategoryUseCase { get; }
+    IGetProductByIdWithCategoryUseCase GetByIdWithCategoryUseCase { get; }
 
-    GetProductsByCategoryIdUseCase GetByCategoryIdUseCase { get; }
+    IGetProductsByCategoryIdUseCase GetByCategoryIdUseCase { get; }
 }

@@ -50,6 +50,7 @@ public class CategoriesController : ControllerBase
     public async Task<ActionResult<CategoryDTO>> GetByIdWithProductsAsync([FromRoute] int id)
     {
         var categoryDTO = await _useCaseManager.GetProvider.GetByIdWithProductsUseCase.ExecuteAsync(id);
+
         return Ok(categoryDTO);
     }
 
@@ -58,7 +59,7 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(typeof(ResponseCategoriesStatsDTO), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResponseCategoriesStatsDTO>> GetStatsAsync([FromQuery] CategoriesParameters categoriesParams)
     {
-        var statsDTO = await _useCaseManager.StatsProvider.StatsUseCase.ExecuteAsync(categoriesParams);
+        var statsDTO = await _useCaseManager.GetProvider.GetStatsUseCase.ExecuteAsync(categoriesParams);
         return Ok(statsDTO);
     }
 

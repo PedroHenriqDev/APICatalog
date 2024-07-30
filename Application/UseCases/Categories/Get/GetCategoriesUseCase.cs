@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Get;
 using Application.Pagination;
 using Application.Validations;
 using AutoMapper;
@@ -9,7 +10,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Categories.Get;
 
-public class GetCategoriesUseCase : UseCase
+public class GetCategoriesUseCase : UseCase, IGetCategoriesUseCase
 {
     public GetCategoriesUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper) 
     {

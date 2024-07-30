@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Put;
 using Application.Validations;
 using Application.Validations.Categories;
 using AutoMapper;
@@ -10,7 +11,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Categories.Put;
 
-public class UpdateCategoryUseCase : UseCase
+public class UpdateCategoryUseCase : UseCase, IUpdateCategoryUseCase
 {
     private readonly CategoryValidation _validation;
 

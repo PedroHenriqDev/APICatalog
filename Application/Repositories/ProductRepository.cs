@@ -3,11 +3,7 @@ using Infrastructure.Domain;
 using Application.Interfaces;
 using Application.Pagination;
 using Microsoft.EntityFrameworkCore;
-using Configuration.Resources;
-using ExceptionManager.ExceptionBase;
-using Application.Extensions;
 using Application.Mapper;
-using Application.Validations;
 
 namespace Application.Repositories;
 
@@ -66,7 +62,7 @@ public class ProductRepository : Repository<Product>, IProductRepository
         return completeProduct;
     }
 
-    public async Task<IEnumerable<Product>> GetByCategoryIdAsync(int categoryId)
+    public async Task<PagedList<Product>> GetByCategoryIdAsync(int categoryId, ProductsParameters productParams)
     {
         var products = await _context.Products
             .AsNoTracking()
@@ -76,6 +72,6 @@ public class ProductRepository : Repository<Product>, IProductRepository
 
         var completeProducts = products.Select(product => product.MapProductWithCategory());
 
-        return completeProducts;
+        return PagedList<Product>.ToPagedList(completeProducts.AsQueryable(), productParams.PageNumber, productParams.PageSize);
     }
 }

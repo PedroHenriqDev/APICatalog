@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Products.Patch;
 using Application.Validations;
 using Application.Validations.Products;
 using AutoMapper;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace Application.UseCases.Products.Patch;
 
-public class PatchProductUseCase : UseCase
+public class PatchProductUseCase : UseCase, IPatchProductUseCase
 {
     private readonly RequestProductDTOValidation _validation;
 

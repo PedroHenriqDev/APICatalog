@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Interfaces.UseCases.Products.Get;
 using Application.Pagination;
 using Application.Validations;
 using AutoMapper;
@@ -9,7 +10,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Products.Get;
 
-public class GetProductsUseCase : UseCase
+public class GetProductsUseCase : UseCase, IGetProductsUseCase
 {
     public GetProductsUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
     {

@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Patch;
 using Application.Validations;
 using Application.Validations.Categories;
 using AutoMapper;
@@ -12,7 +13,7 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace Application.UseCases.Categories.Patch;
 
-public class PatchCategoryUseCase : UseCase
+public class PatchCategoryUseCase : UseCase, IPatchCategoryUseCase
 {
     private readonly RequestPatchCategoryDTOValidation _validation;
 

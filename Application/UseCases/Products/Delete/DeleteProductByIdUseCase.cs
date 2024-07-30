@@ -1,5 +1,7 @@
 ﻿using Application.Extensions;
 using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Delete;
+using Application.Interfaces.UseCases.Products.Delete;
 using Application.Validations;
 using AutoMapper;
 using Communication.DTOs;
@@ -9,7 +11,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Products.Delete;
 
-public class DeleteProductByIdUseCase : UseCase
+public class DeleteProductByIdUseCase : UseCase, IDeleteProductByIdUseCase
 {
     public DeleteProductByIdUseCase(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
     {

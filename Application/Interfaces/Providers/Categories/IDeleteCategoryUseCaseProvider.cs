@@ -1,8 +1,9 @@
-﻿using Application.UseCases.Categories.Delete;
+﻿using Application.Interfaces.UseCases.Categories.Delete;
+using Application.UseCases.Categories.Delete;
 
 namespace Application.Interfaces.Providers.Categories;
 
 public interface IDeleteCategoryUseCaseProvider
 {
-    DeleteCategoryByIdUseCase DeleteByIdUseCase { get; }
+    IDeleteCategoryByIdUseCase DeleteByIdUseCase { get; }
 }

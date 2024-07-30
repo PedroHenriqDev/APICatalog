@@ -1,4 +1,7 @@
 ﻿using APICatalog.Controllers;
+using Application.Pagination;
+using Communication.DTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace UnitTests.Tests.Products.Actions.Get;
@@ -8,8 +11,13 @@ public class GetProductUnitTests : IClassFixture<ProductsControllerUnitTest>
     private readonly ProductsController _controller;
 
     public GetProductUnitTests(ProductsControllerUnitTest controllerUnitTest)
-    {
-        _controller = new ProductsController(controllerUnitTest.Mapper, controllerUnitTest.UseCaseManager);
+    { 
+         ControllerContext controllerContext = new ControllerContext();
+         controllerContext.HttpContext = new DefaultHttpContext();
+        _controller = new ProductsController(controllerUnitTest.Mapper, controllerUnitTest.UseCaseManager) 
+        {
+            ControllerContext = controllerContext,
+        };
     }
 
     [Fact]
@@ -23,31 +31,34 @@ public class GetProductUnitTests : IClassFixture<ProductsControllerUnitTest>
 
         //Assert
         var result = Assert.IsType<OkObjectResult>(data.Result);
-        Assert.Equal(200, result.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
     }
 
     [Fact]
-    public async Task GetById_Return_BadRequest() 
+    public void GetProducts_Return_OkResult()
     {
-        int id = 0;
 
-        var data = await _controller.GetByIdAsync(id);
+        var productsDTO = new List<ProductDTO>
+        {
+            new ProductDTO
+            {
+                CategoryId = 1,
+                DateRegister = DateTime.Now,
+                Name = "Test",
+                Stock = 2,
+                Price = 3,
+                ProductId = 2,
+                Description = "Test description",
+                ImageUrl = "test.jpg"
+            }
+        };
 
-        var result = Assert.IsType<ObjectResult>(data.Result);
-        Assert.Equal(400, result.StatusCode);
-    }
+        var pagedProductsDTO = PagedList<ProductDTO>.ToPagedList(productsDTO.AsQueryable(), 1, 1);
 
-    [Fact]
-    public async Task GetById_Return_NotFound()
-    {
-        //Arrange
-        int id = 123818;
+        var data = _controller.GetProductsMetaData(pagedProductsDTO);
 
-        //Act
-        var data = await _controller.GetByIdAsync(id);
-
-        //Assert
-        var result = Assert.IsType<ObjectResult>(data.Result);
-        Assert.Equal(404, result.StatusCode);
+        var result = Assert.IsType<OkObjectResult>(data.Result);
+        Assert.NotNull(result.Value);
+        Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
     }
 }

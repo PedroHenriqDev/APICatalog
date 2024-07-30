@@ -6,7 +6,6 @@ namespace Communication.DTOs;
 
 public class ProductDTO
 {
-    [Key]
     public int ProductId { get; set; }
 
     [Required]

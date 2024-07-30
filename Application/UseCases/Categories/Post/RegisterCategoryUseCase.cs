@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Interfaces.UseCases.Categories.Post;
 using Application.Validations.Categories;
 using AutoMapper;
 using Communication.DTOs;
@@ -7,7 +8,7 @@ using Infrastructure.Domain;
 
 namespace Application.UseCases.Categories.Post;
 
-public class RegisterCategoryUseCase : UseCase
+public class RegisterCategoryUseCase : UseCase, IRegisterCategoryUseCase
 {
     private readonly CategoryValidation _validation;
 

@@ -18,15 +18,19 @@ public class ApiExceptionFilter : IExceptionFilter
     public void OnException(ExceptionContext context)
     {
         _logger.LogError(context.Exception.StackTrace);
-            
+
         if (context.Exception is BaseException)
         {
             var exception = (BaseException)context.Exception;
-            context.HttpContext.Response.StatusCode = (int)exception.GetStatusCode();
+            int statusCode = (int)exception.GetStatusCode();
+            context.HttpContext.Response.StatusCode = statusCode;
 
             var response = new ResponseErrorsDTO(exception.GetErrorMessages());
 
-            context.Result = new ObjectResult(response);
+            context.Result = new ObjectResult(response) 
+            {
+                StatusCode = statusCode
+            };
         }
         else
         {
@@ -34,7 +38,10 @@ public class ApiExceptionFilter : IExceptionFilter
 
             var response = new ResponseErrorsDTO([ErrorMessagesResource.UNKNOWN_ERROR]);
 
-            context.Result = new ObjectResult(response);
+            context.Result = new ObjectResult(response) 
+            {
+                StatusCode = StatusCodes.Status500InternalServerError,
+            };
         }
     }
 }

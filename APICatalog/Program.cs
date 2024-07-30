@@ -123,7 +123,6 @@ builder.Services.AddScoped<IPostCategoryUseCaseProvider, PostCategoryUseCaseProv
 builder.Services.AddScoped<IPutCategoryUseCaseProvider, PutCategoryUseCaseProvider>();
 builder.Services.AddScoped<IPatchCategoryUseCaseProvider, PatchCategoryUseCaseProvider>();
 builder.Services.AddScoped<IDeleteCategoryUseCaseProvider, DeleteCategoryUseCaseProvider>();
-builder.Services.AddScoped<IStatsCategoryUseCaseProvider, StatsCategoryUseCaseProvider>();
 
 //Providers Product
 builder.Services.AddScoped<IGetProductUseCaseProvider, GetProductUseCaseProvider>();

@@ -1,8 +1,8 @@
-﻿using Application.UseCases.Categories.Patch;
+﻿using Application.Interfaces.UseCases.Categories.Patch;
 
 namespace Application.Interfaces.Providers.Categories;
 
 public interface IPatchCategoryUseCaseProvider
 {
-    PatchCategoryUseCase PatchUseCase { get; }
+    IPatchCategoryUseCase PatchUseCase { get; }
 }
